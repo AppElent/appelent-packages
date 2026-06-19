@@ -3,15 +3,23 @@
 	"version": "0.1.0",
 	"type": "module",
 	"license": "UNLICENSED",
-	"publishConfig": { "registry": "https://npm.pkg.github.com" },
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/AppElent/appelent-packages.git",
 		"directory": "packages/auth"
 	},
-	"files": ["dist", "tokens.css"],
+	"files": [
+		"dist",
+		"tokens.css"
+	],
 	"exports": {
-		".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
 		"./tokens.css": "./tokens.css"
 	},
 	"scripts": {
@@ -28,6 +36,7 @@
 	},
 	"dependencies": {
 		"clsx": "^2.1.1",
+		"lucide-react": "^1.20.0",
 		"tailwind-merge": "^3.0.0"
 	},
 	"devDependencies": {
@@ -41,6 +50,7 @@
 		"react-dom": "^19.2.0",
 		"tsup": "^8.3.0",
 		"typescript": "^6.0.2",
+		"vite": "^8.0.0",
 		"vitest": "^4.1.9"
 	}
 }
