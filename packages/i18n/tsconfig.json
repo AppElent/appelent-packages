@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"ignoreDeprecations": "6.0",
+		"baseUrl": ".",
+		"paths": { "@/*": ["src/*"] },
+		"module": "ESNext",
+		"lib": ["ES2022", "DOM"],
+		"jsx": "react-jsx",
+		"types": ["node"],
+		"noEmit": true
+	},
+	"include": ["src"]
+}

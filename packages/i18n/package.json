@@ -1,0 +1,73 @@
+{
+	"name": "@appelent/i18n",
+	"version": "0.1.0",
+	"type": "module",
+	"license": "UNLICENSED",
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/AppElent/appelent-packages.git",
+		"directory": "packages/i18n"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./server": {
+			"types": "./dist/server.d.ts",
+			"import": "./dist/server.js"
+		},
+		"./clerk-sync": {
+			"types": "./dist/clerk-sync.d.ts",
+			"import": "./dist/clerk-sync.js"
+		},
+		"./test-utils": {
+			"types": "./dist/test-utils.d.ts",
+			"import": "./dist/test-utils.js"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"lint": "biome check ."
+	},
+	"peerDependencies": {
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"@tanstack/react-start": "^1.0.0",
+		"@clerk/clerk-react": "^5.61.0",
+		"vitest": "^3.0.0 || ^4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@clerk/clerk-react": {
+			"optional": true
+		},
+		"vitest": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@clerk/clerk-react": "^5.61.3",
+		"@types/node": "^26.0.0",
+		"@tanstack/react-start": "^1.0.0",
+		"@testing-library/dom": "^10.4.1",
+		"@testing-library/react": "^16.3.0",
+		"@types/react": "^19.2.0",
+		"@types/react-dom": "^19.2.0",
+		"jsdom": "^29.1.1",
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0",
+		"tsup": "^8.3.0",
+		"typescript": "^6.0.2",
+		"vite": "^8.0.0",
+		"vitest": "^4.1.9"
+	}
+}
