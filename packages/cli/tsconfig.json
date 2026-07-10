@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"ignoreDeprecations": "6.0",
+		"baseUrl": ".",
+		"paths": { "@/*": ["src/*"] },
+		"module": "ESNext",
+		"lib": ["ES2022"],
+		"jsx": "preserve",
+		"types": ["node"],
+		"noEmit": true
+	},
+	"include": ["src"]
+}

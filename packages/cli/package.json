@@ -1,0 +1,36 @@
+{
+	"name": "@appelent/cli",
+	"version": "0.1.0",
+	"type": "module",
+	"license": "UNLICENSED",
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/AppElent/appelent-packages.git",
+		"directory": "packages/cli"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"lint": "biome check ."
+	},
+	"devDependencies": {
+		"@types/node": "^26.0.0",
+		"tsup": "^8.3.0",
+		"typescript": "^6.0.2",
+		"vitest": "^4.1.9"
+	}
+}
