@@ -827,6 +827,13 @@ frontmatter) and `SKILL.md` (apply/update procedure).
 
 Subcommands (also reachable by natural language):
 
+## help
+
+For `help`, or when invoked with no/unrecognized arguments: explain the
+subcommands below in one line each, then state how onboarding works: a new
+or existing app joins the mechanism via `apply baseline`, after which
+features are added à la carte with `apply <feature>`.
+
 ## list
 
 For each feature folder read the FEATURE.md frontmatter and print a table:
@@ -861,6 +868,12 @@ With `--update`: read the app's recorded version, apply only the
 Changelog deltas between recorded and current, then update the recorded
 version.
 
+When the feature is `baseline` (this is how a project is onboarded into
+the mechanism — new scaffold or existing unmanaged app alike), finish by
+offering to add the app's absolute path to `projects.json` in the catalog
+repo checkout (`D:\Dev\appelent-packages`) so `status --all` covers it;
+commit that change in the catalog repo.
+
 ## capture <topic>
 
 Interview the user about the design decision (what, stack, architecture,
@@ -894,13 +907,12 @@ Create `commands/appelent.md`:
 ```md
 ---
 description: Appelent feature catalog — list, show, apply, capture, status
-argument-hint: "list | show <feature> | apply <feature> [options] | capture <topic> | status [--all]"
+argument-hint: "help | list | show <feature> | apply <feature> [options] | capture <topic> | status [--all]"
 ---
 
 Use the `appelent` skill from this plugin to handle: $ARGUMENTS
 
-If no arguments were given, run the `list` subcommand and briefly explain
-the other subcommands.
+If no arguments were given, run the `help` subcommand.
 ```
 
 - [ ] **Step 3: Write the fleet list**

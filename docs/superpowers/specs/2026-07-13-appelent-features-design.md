@@ -108,12 +108,15 @@ Standard Agent Skills format (`name` + `description` frontmatter). The descripti
 
 A `commands/appelent.md` command plus the `skills/appelent` skill. The skill operates on its own sibling folders, so it can never go stale relative to the catalog. Natural language ("what features do I have?", "add i18n here") reaches the same skill via description matching; the command is the guaranteed-explicit path.
 
+- `/appelent help` (or bare `/appelent`) — explain the subcommands and how onboarding works.
 - `/appelent list` — table of feature folders: name, one-line description, stage (derived from which files/packages exist), version.
 - `/appelent show <feature>` — summarize that feature's `FEATURE.md`.
 - `/appelent apply <feature> [options...]` — e.g. `apply mcp using tanstack-ai-mcp on cloudflare`. Loads the feature's `SKILL.md`, wires the app, records the result in `appelent.json`.
 - `/appelent apply <feature> --update` — runs the skill's update path from the recorded version to current.
 - `/appelent capture <topic>` — interviews the user, writes `skills/<topic>/FEATURE.md` (version 1) and a stub `SKILL.md` in the monorepo checkout.
 - `/appelent status [--all]` — see Freshness below.
+
+**Onboarding a project** (new scaffold or existing unmanaged app) is `/appelent apply baseline`: it merges the baseline in, stamps the managed blocks, and creates `appelent.json`. As its final step the flow offers to add the app's path to the monorepo's `projects.json` so `status --all` covers it.
 
 ## Per-App Record: appelent.json
 
