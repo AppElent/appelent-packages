@@ -6,7 +6,8 @@
 		"build": "pnpm -r build",
 		"test": "pnpm -r test",
 		"typecheck": "pnpm -r typecheck",
-		"lint": "biome check ."
+		"lint": "biome check .",
+		"validate:catalog": "node scripts/validate-catalog.mjs && node --test tests/catalog.test.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.0"
