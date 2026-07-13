@@ -953,14 +953,30 @@ git commit -m "feat: add /appelent front door and fleet list"
 
 **Files:** none created in the repo (local machine state + verification).
 
-- [ ] **Step 1: Add the local marketplace and install**
+> **Install method — important.** Do NOT add the repo as a *local Directory*
+> marketplace source. A Directory source copies the entire working tree
+> (including the pnpm `node_modules` symlink farm, ignoring `.gitignore`) into
+> the plugin cache, which fails on Windows with `EPERM` when symlink
+> privilege is off. A **git/github source clones tracked files only** (no
+> `node_modules`), and `--plugin-dir` loads in place with no copy. Use those
+> two paths.
+
+- [ ] **Step 1: Install from the github source**
+
+The repo must be pushed to GitHub. To verify from a feature branch before
+merge, pin the marketplace to the branch with `@ref`:
 
 ```bash
-claude plugin marketplace add D:\Dev\appelent-packages
+claude plugin marketplace add AppElent/appelent-packages@feat/appelent-catalog
 claude plugin install appelent@appelent
 ```
 
-Expected: both commands succeed. If `marketplace add` rejects the path form, run it from inside the repo with `claude plugin marketplace add .`.
+After merge to `master`, the standing form drops the ref:
+`claude plugin marketplace add AppElent/appelent-packages`.
+
+Expected: install succeeds with no `EPERM`/`node_modules` error (the clone
+carries no `node_modules`). Verify registration: `claude plugin list` shows
+`appelent@appelent` enabled.
 
 - [ ] **Step 2: Smoke test in a fresh session**
 
@@ -970,9 +986,16 @@ Expected: a table with baseline, auth, cli, i18n, mcp — correct stages (auth/c
 Then run `/appelent show mcp`.
 Expected: a summary naming the two supported `lib` options and the cloudflare-workers deploy target.
 
-- [ ] **Step 3: Record the update procedure**
+- [ ] **Step 3: Local dev loop and updates**
 
-Verify `claude plugin update appelent` runs without error (it should re-sync from the local path). This is the standing update command; on other machines the marketplace is added from GitHub instead: `claude plugin marketplace add AppElent/appelent-packages`.
+For iterating on the catalog on the primary machine without reinstalling,
+run Claude Code with the plugin loaded in place (no copy):
+`claude --plugin-dir "D:\Dev\appelent-packages"`. Edits to skills/commands
+are picked up on restart.
+
+The standing update command for an installed copy is
+`claude plugin update appelent` (re-clones from the github source after
+changes are merged).
 
 No commit for this task.
 
@@ -1127,8 +1150,11 @@ changelog), `SKILL.md` applies it to an app. Packaged features have their
 runtime code under `packages/`.
 
 - Install (Claude Code): `claude plugin marketplace add AppElent/appelent-packages`
-  then `claude plugin install appelent@appelent`. Local dev on this
-  machine: `claude plugin marketplace add D:\Dev\appelent-packages`.
+  then `claude plugin install appelent@appelent`. The github source clones
+  tracked files only — do NOT add the repo as a local Directory source (that
+  copies `node_modules` and fails on Windows).
+- Local dev on this machine: `claude --plugin-dir "D:\Dev\appelent-packages"`
+  loads the plugin in place with no copy; edits apply on restart.
 - Update: `claude plugin update appelent`.
 - Codex: `powershell -File scripts/setup-codex-skills.ps1` (junctions into
   `~/.codex/skills`).
