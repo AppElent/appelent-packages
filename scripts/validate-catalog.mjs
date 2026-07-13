@@ -18,7 +18,7 @@ export function validateCatalog(root) {
 	const errors = [];
 	const skillsDir = join(root, "skills");
 	const features = readdirSync(skillsDir, { withFileTypes: true })
-		.filter((e) => e.isDirectory() && e.name !== "appelent")
+		.filter((e) => e.isDirectory() && e.name !== "appelent-catalog")
 		.map((e) => e.name);
 
 	for (const name of features) {

@@ -1,12 +1,12 @@
 ---
-name: appelent
-description: Front door for the Appelent feature catalog. Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/design decision, or check an app's feature status/freshness.
+name: appelent-catalog
+description: Front door for the Appelent feature catalog (the /appelent command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/design decision, or check an app's feature status/freshness.
 ---
 
-# appelent
+# appelent-catalog
 
 Operate on the sibling feature folders of this skill: every directory next
-to this one (`../<feature>/`) that is not `appelent` is a feature, with
+to this one (`../<feature>/`) that is not `appelent-catalog` is a feature, with
 `FEATURE.md` (description, integer `version`, optional `package`
 frontmatter) and `SKILL.md` (apply/update procedure).
 

@@ -7,10 +7,10 @@ import { validateCatalog } from "../scripts/validate-catalog.mjs";
 
 function makeRepo() {
 	const root = mkdtempSync(join(tmpdir(), "appelent-catalog-"));
-	mkdirSync(join(root, "skills", "appelent"), { recursive: true });
+	mkdirSync(join(root, "skills", "appelent-catalog"), { recursive: true });
 	writeFileSync(
-		join(root, "skills", "appelent", "SKILL.md"),
-		"---\nname: appelent\ndescription: front door\n---\n# appelent\n",
+		join(root, "skills", "appelent-catalog", "SKILL.md"),
+		"---\nname: appelent-catalog\ndescription: front door\n---\n# appelent-catalog\n",
 	);
 	return root;
 }

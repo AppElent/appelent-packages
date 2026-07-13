@@ -26,7 +26,7 @@ New files in this repo (`D:\Dev\appelent-packages`):
 ```text
 .claude-plugin/plugin.json          # plugin manifest, name "appelent"
 .claude-plugin/marketplace.json     # repo doubles as its own marketplace
-skills/appelent/SKILL.md            # front door: list/show/apply/capture/status
+skills/appelent-catalog/SKILL.md    # front door skill (the /appelent command routes here)
 skills/baseline/SKILL.md            # from custom-bootstrap (project baseline)
 skills/baseline/FEATURE.md
 skills/auth/SKILL.md                # new, thin: apply @appelent/auth
@@ -810,18 +810,18 @@ git commit -m "feat: add catalog contract validator with tests"
 
 - [ ] **Step 1: Write the front door skill**
 
-Create `skills/appelent/SKILL.md`:
+Create `skills/appelent-catalog/SKILL.md` (the skill is named `appelent-catalog`, **not** `appelent`, so it does not collide with the `/appelent` command — a plugin skill and command sharing a name both claim `/appelent` and break the command):
 
 ````md
 ---
-name: appelent
-description: Front door for the Appelent feature catalog. Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/design decision, or check an app's feature status/freshness.
+name: appelent-catalog
+description: Front door for the Appelent feature catalog (the /appelent command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/design decision, or check an app's feature status/freshness.
 ---
 
 # appelent
 
 Operate on the sibling feature folders of this skill: every directory next
-to this one (`../<feature>/`) that is not `appelent` is a feature, with
+to this one (`../<feature>/`) that is not `appelent-catalog` is a feature, with
 `FEATURE.md` (description, integer `version`, optional `package`
 frontmatter) and `SKILL.md` (apply/update procedure).
 
@@ -910,7 +910,7 @@ description: Appelent feature catalog — list, show, apply, capture, status
 argument-hint: "help | list | show <feature> | apply <feature> [options] | capture <topic> | status [--all]"
 ---
 
-Use the `appelent` skill from this plugin to handle: $ARGUMENTS
+Use the `appelent-catalog` skill from this plugin to handle: $ARGUMENTS
 
 If no arguments were given, run the `help` subcommand.
 ```
@@ -943,7 +943,7 @@ Expected: passes.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add skills/appelent/SKILL.md commands/appelent.md projects.json
+git add skills/appelent-catalog/SKILL.md commands/appelent.md projects.json
 git commit -m "feat: add /appelent front door and fleet list"
 ```
 

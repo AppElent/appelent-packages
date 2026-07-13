@@ -161,7 +161,7 @@ The catalog needs no translation: `skills/<feature>/` folders are valid open-spe
 
 - **Claude Code:** the plugin.
 - **Codex:** Codex discovers personal skills in `~/.codex/skills/`. A small one-time setup script in the monorepo creates Windows directory junctions from `~/.codex/skills/<feature>` to `D:\Dev\appelent-packages\skills\<feature>`. Same files on disk; `git pull` updates both agents at once. Implementation must verify whether a single junction of the whole `skills/` folder is discovered (nesting) or one junction per feature is required, and the setup script must be re-run when features are added (or the whole-folder junction used if supported).
-- **Front door in Codex:** the `appelent` skill is invocable via `$appelent` or auto-match; only the slash-command registration is Claude-specific.
+- **Front door in Codex:** the `appelent-catalog` skill is invocable via `$appelent-catalog` or auto-match; only the `/appelent` slash-command registration is Claude-specific. (The skill is named `appelent-catalog`, not `appelent`, so it does not collide with the `/appelent` command.)
 - **Web/cloud sessions (any vendor):** the app's own `appelent.json` plus its AGENTS.md/CLAUDE.md managed block point to `github.com/AppElent/appelent-packages`; agents read `FEATURE.md`/`SKILL.md` from GitHub. No committed mirrors.
 - **Per-repo opt-in (future option):** the `.agents/skills/` root convention exists if a specific app ever needs to carry a skill without a global install; it is not part of the standard setup.
 
