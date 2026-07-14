@@ -7,9 +7,9 @@ description: Front door for the Appelent feature catalog (the /appelent:feature 
 
 Operate on the sibling feature folders of this skill: every directory next
 to this one (`../<feature>/`) that is not `appelent-feature`, `appelent-project`,
-`review-app`, or `review-session` is a feature, with `FEATURE.md` (description,
-integer `version`, optional `package` frontmatter) and `SKILL.md` (apply/update
-procedure).
+`review-app`, `review-session`, or `upgrade-deps` is a feature, with
+`FEATURE.md` (description, integer `version`, optional `package`
+frontmatter) and `SKILL.md` (apply/update procedure).
 
 ## Locating the catalog repo checkout
 

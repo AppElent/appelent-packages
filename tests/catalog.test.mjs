@@ -88,10 +88,10 @@ test("SKILL.md must have name and description frontmatter", () => {
 	rmSync(root, { recursive: true, force: true });
 });
 
-test("plugin utility skills (appelent-project, review-app, review-session) are excluded from the FEATURE.md contract", () => {
+test("plugin utility skills (appelent-project, review-app, review-session, upgrade-deps) are excluded from the FEATURE.md contract", () => {
 	const root = makeRepo();
 	writeFeature(root, "mcp");
-	for (const name of ["appelent-project", "review-app", "review-session"]) {
+	for (const name of ["appelent-project", "review-app", "review-session", "upgrade-deps"]) {
 		const dir = join(root, "skills", name);
 		mkdirSync(dir, { recursive: true });
 		writeFileSync(
