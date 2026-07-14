@@ -83,8 +83,8 @@ sync.
 
 ## Usage
 
-- Feature catalog: `/appelent:feature list | show <feature> | apply <feature> [options] | capture <topic>`.
-- Project: `/appelent:project list | status [--all] | suggest <idea> | suggestions | review-app | review-session | upgrade-deps | sync-skills <name>...`.
+- Feature catalog: `/appelent:feature list | show <feature> | apply <feature> [options] | capture <topic> | issue <text> | issues | fix <n> [n...]`.
+- Project: `/appelent:project list | status [--all] | issue <text> | issues | fix <n> [n...] | review-app | review-session | upgrade-deps | sync-skills <name>...`.
 - Onboard a project (new or existing): `/appelent:feature apply baseline`, then
   add features à la carte.
 - Apps record their opted-in features and options in their own `appelent.json`.
