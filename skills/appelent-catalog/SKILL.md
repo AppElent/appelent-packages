@@ -1,6 +1,6 @@
 ---
 name: appelent-catalog
-description: Front door for the Appelent feature catalog (the /appelent command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature or fold work into an existing one, or check an app's feature status/freshness.
+description: Front door for the Appelent feature catalog (the /appelent command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature or fold work into an existing one, note an improvement idea for later (suggest) or pick one back up (suggestions), or check an app's feature status/freshness.
 ---
 
 # appelent-catalog
@@ -104,6 +104,53 @@ what we just built as `<topic>`, ask about anything unclear."
    `{ "features": {} }` shape first if it doesn't exist. This is a
    separate commit in the app repo (a different repo from the catalog
    checkout) — offer it, never make it silently.
+
+## suggest <idea>
+
+Zero-friction braindump: log an improvement idea for the catalog mechanism
+(or a specific feature) as a GitHub issue, without interviewing the user or
+interrupting whatever they're doing. Reachable via natural language, e.g.
+"note an idea: X", "suggest that we...".
+
+1. Use the user's one-line idea as the issue title. If their message
+   included more context, use it as the issue body; otherwise leave the
+   body empty.
+2. Ensure the label exists: `gh label list --repo AppElent/appelent-packages
+   --search catalog-suggestion`. If it's not there, create it:
+   `gh label create catalog-suggestion --repo AppElent/appelent-packages
+   --description "Braindumped improvement idea for the appelent-packages
+   catalog mechanism" --color ededed`.
+3. File the issue: `gh issue create --repo AppElent/appelent-packages
+   --title "<idea>" --body "<context or empty string>" --label
+   catalog-suggestion`.
+4. Always targets `AppElent/appelent-packages` via `--repo`, regardless of
+   which repo the user is currently working in — same cross-repo behavior
+   as `capture` always writing into the catalog checkout.
+5. No follow-up questions. Confirm the issue was filed (report the issue
+   URL `gh issue create` prints) and stop.
+
+## suggestions
+
+List open braindumped ideas and resume one. Reachable via natural
+language, e.g. "what improvement ideas do I have?", "let's work on one of
+my suggestions".
+
+1. List open candidates: `gh issue list --repo AppElent/appelent-packages
+   --label catalog-suggestion --state open`. Show the user each issue's
+   number and title.
+2. Let the user pick one, by number or by naming it. If their answer
+   matches more than one listed issue, or none, ask them to pick by number
+   instead of guessing.
+3. Fetch the full issue: `gh issue view <n> --repo
+   AppElent/appelent-packages`.
+4. Use that issue's title and body as the starting context for the
+   `brainstorming` skill, in place of a blank user prompt — the rest of
+   the flow (clarifying questions, design, plan) proceeds exactly as it
+   would for any other brainstorming request.
+5. Once that work concludes, offer to close the issue: `gh issue close <n>
+   --repo AppElent/appelent-packages`. Never close it without asking —
+   same "propose, don't silently act" principle `status` and `apply`
+   already follow for app-side edits.
 
 ## status [--all]
 
