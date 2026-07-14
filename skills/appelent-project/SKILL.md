@@ -32,6 +32,13 @@ the catalog — that's what `status` is for. If `appelent.json` is missing,
 say the app isn't onboarded yet and suggest `/appelent:feature apply
 baseline`.
 
+If a recorded entry has a `steps` array (partial application via
+`apply <feature> --step <n>` — see `appelent-feature`'s `apply` subcommand),
+show it as partial rather than fully applied, e.g. "baseline: v2 (steps
+1-7,9-12 applied; 8, 13 missing)" — compute the missing set from
+`appelent-feature`'s `steps <feature>` parse of the catalog's current
+`SKILL.md`. No `steps` key means fully applied, as today.
+
 ## status [--all]
 
 For the current app (or for each path in the catalog repo's
@@ -46,7 +53,11 @@ is found.
 1. Read `appelent.json`; for each recorded feature compare its version to
    the catalog FEATURE.md version. Report: up to date, or behind (show
    the Changelog lines between the versions and offer `/appelent:feature
-   apply --update`).
+   apply --update`). If the entry has a `steps` array, report it as
+   partially applied at that version (same "steps applied / missing"
+   framing as `list` above) rather than folding it into up-to-date/behind,
+   and offer `/appelent:feature apply <feature> --step <missing...>` to
+   close the gap.
 2. For packaged features, check `@appelent/*` versions in the app's
    `package.json` against the workspace package versions; report outdated.
 3. Report mismatches both ways: recorded-but-no-evidence and

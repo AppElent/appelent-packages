@@ -60,14 +60,25 @@ column with the app's recorded version per feature.
 Read `../<feature>/FEATURE.md` and summarize it: What, Stack (including
 supported options), Architecture, Configuration, and the Changelog tail.
 
-## apply <feature> [options...]
+## steps <feature>
+
+List a feature's individually-addressable steps, so the user can see what
+`apply <feature> --step <n>` would target before running it. Read
+`../<feature>/SKILL.md` and parse the `### N. Title` headings under its
+`## Task` section (baseline (`../baseline/SKILL.md`) is the reference shape
+for this — its 13 numbered steps parse directly). Print a numbered list of
+step number + title. If a feature's `SKILL.md` has no numbered headings
+there, say so and note the whole feature applies as one unit — nothing to
+list.
+
+## apply <feature> [--step <n>[,<n>...]] [--all] [options...]
 
 1. Read `../<feature>/FEATURE.md`. Check requested options (e.g. "using
    agents on cloudflare" for mcp) against the Stack section. If an option
    is not described there, STOP: tell the user which options are
    supported and offer to extend FEATURE.md first (in the catalog repo,
    bumping `version` with a Changelog line). Never wire undescribed stacks.
-2. Follow `../<feature>/SKILL.md` to do the wiring in the current app.
+2. Follow `../<feature>/SKILL.md` to do the wiring in the target app.
 3. Record the result in `appelent.json` at the app root, in the same
    commit as the wiring: `"<feature>": { "version": <FEATURE.md version>,
    "options": { ... } }` (omit `options` if none were chosen). Create the
@@ -77,11 +88,52 @@ With `--update`: read the app's recorded version, apply only the
 Changelog deltas between recorded and current, then update the recorded
 version.
 
+**`--step <n>[,<n>...]`** — apply (or re-apply) only specific steps instead
+of the whole feature:
+
+- Validate the given numbers against `steps <feature>`'s parse; if any are
+  unknown, STOP and show the valid list.
+- Still run step 1 above (options vs. Stack) if options were also given.
+- For step 2, follow only the named numbered section(s) of `SKILL.md`
+  instead of the whole file. A feature's `SKILL.md` may have shared setup
+  outside the numbered list that every step depends on (e.g. baseline's
+  "Gathering context" section) — run that first regardless of which steps
+  were selected, same as a full apply would.
+- For step 3, record partial application instead of a plain version stamp:
+  `"<feature>": { "version": <FEATURE.md version>, "steps": [n, ...],
+  "options": {...} }`. Merge the newly-applied step numbers into any
+  `steps` array already recorded for that feature (dedupe + sort). If the
+  merged set ends up covering every step number `steps <feature>` currently
+  reports, drop the `steps` key entirely — a complete set of steps is
+  equivalent to a full apply, and the schema's plain `{ "version": n }`
+  shape already means "fully applied."
+
+**`--all`** — apply (optionally `--step`-scoped) to every project
+registered in `projects.json`, not just the current app:
+
+- Resolve the catalog checkout the same way `status --all` does (see
+  "Locating the catalog repo checkout" above) and read `projects.json`
+  from it.
+- For each registered path, run steps 1-3 above (or the `--step`-scoped
+  variant) with that path as the target app instead of the current
+  directory. Skip and report missing paths, never fail — same policy
+  `status --all` already uses.
+- Don't pause for confirmation per project. Run through all of them, then
+  print a one-line-per-project summary (applied / already up to date /
+  skipped-missing / error) plus a totals line.
+- Each project's own commit(s) happen in that project's own repo,
+  following that feature's own commit conventions (e.g. baseline's "one
+  commit per step") — never batch multiple projects' changes into one
+  cross-repo commit.
+- Skip the `baseline`-registration offer below under `--all` — every
+  target is already registered by definition.
+
 When the feature is `baseline` (this is how a project is onboarded into
-the mechanism — new scaffold or existing unmanaged app alike), finish by
-offering to add the app's absolute path to `projects.json` in the catalog
-repo checkout (see "Locating the catalog repo checkout" above) so `status
---all` covers it; commit that change in the catalog repo.
+the mechanism — new scaffold or existing unmanaged app alike) and `--all`
+was not used, finish by offering to add the app's absolute path to
+`projects.json` in the catalog repo checkout (see "Locating the catalog
+repo checkout" above) so `status --all` covers it; commit that change in
+the catalog repo.
 
 ## capture <topic>
 
