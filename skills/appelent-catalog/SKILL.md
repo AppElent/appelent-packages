@@ -39,7 +39,7 @@ supported options), Architecture, Configuration, and the Changelog tail.
 ## apply <feature> [options...]
 
 1. Read `../<feature>/FEATURE.md`. Check requested options (e.g. "using
-   tanstack-ai-mcp on cloudflare") against the Stack section. If an option
+   agents on cloudflare" for mcp) against the Stack section. If an option
    is not described there, STOP: tell the user which options are
    supported and offer to extend FEATURE.md first (in the catalog repo,
    bumping `version` with a Changelog line). Never wire undescribed stacks.

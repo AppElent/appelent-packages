@@ -115,7 +115,7 @@ auth, and test principles to the host framework.
 Record in `appelent.json` at the app root (same commit as the wiring),
 including the chosen options, e.g.:
 
-    "mcp": { "version": 1, "options": { "lib": "tanstack-ai-mcp", "deploy": "cloudflare-workers" } }
+    "mcp": { "version": 1, "options": { "lib": "agents", "deploy": "cloudflare-workers" } }
 
 Do not mark the feature package-owned until `@appelent/mcp` exists and its
 README is the source of truth.

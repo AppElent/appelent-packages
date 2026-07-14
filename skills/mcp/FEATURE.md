@@ -15,7 +15,9 @@ two or more apps need the same imported runtime helpers.
 
 ## Stack
 
-- Options: `lib: tanstack-ai-mcp | @modelcontextprotocol/sdk`;
+- Options: `lib: agents (Cloudflare Agents SDK, createMcpHandler/McpAgent —
+  preferred for remote Workers endpoints) | @modelcontextprotocol/sdk
+  (baseline SDK, also required for stdio/local-only servers)`;
   `deploy: cloudflare-workers` (the only described deploy target)
 - Host app shape: TanStack Start on Cloudflare Workers
 
