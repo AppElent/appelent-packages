@@ -4,7 +4,7 @@
 
 **Goal:** Upgrade the `capture <topic>` subcommand in `skills/appelent-catalog/SKILL.md` so it drafts the catalog entry from the current session's work (grounded against the real repo) instead of a blank interview, auto-detects new-feature vs. extend-existing, and records the result in the app's `appelent.json`.
 
-**Architecture:** This is a single-file change to an agent-instruction skill (`SKILL.md` prose, not executable code) — there is no runtime to unit test. Verification is: (1) the catalog contract regression suite (`pnpm validate:catalog`), which checks `SKILL.md`/`FEATURE.md` shape, and (2) two scripted manual walkthroughs (new-mode and extend-mode) that exercise the actual `/appelent capture` flow against scratch repos and check the resulting files.
+**Architecture:** This is a single-file change to an agent-instruction skill (`SKILL.md` prose, not executable code) — there is no runtime to unit test. Verification is: (1) the catalog contract regression suite (`pnpm validate:catalog`), which checks `SKILL.md`/`FEATURE.md` shape, and (2) two scripted manual walkthroughs (new-mode and extend-mode) that build a scratch app fixture and then reason through — as a dry run, without writing or committing anything into the real catalog repo or any real app — what the new instructions would produce.
 
 **Tech Stack:** Markdown (Agent Skills format), Node.js test runner (`node --test`) for the existing contract check, pnpm.
 
@@ -117,11 +117,19 @@ git commit -m "feat(catalog): make capture session-aware and extend-capable"
 
 There is no automated way to exercise an LLM-driven interview/summarization
 flow in a unit test. This task is a scripted manual QA pass: a human (or an
-agent following these exact steps) sets up a scratch scenario and confirms
-the new `capture` instructions produce the right files.
+agent following these exact steps) sets up a scratch scenario and reasons
+through what the new `capture` instructions (Task 1) would produce.
+
+**This is a dry run: do not actually write or commit any `FEATURE.md`,
+`SKILL.md`, or `appelent.json` into the real catalog checkout
+(`D:\Dev\appelent-packages`) or any real app repo.** Only the scratch app
+fixture (Step 1) is real; everything `capture` would do with it is worked
+out by reading the new instructions and describing the resulting content,
+not by executing them against production files.
 
 **Files:**
-- None (creates and discards a scratch directory tree)
+- None (creates and discards a scratch directory tree; no catalog or app
+  repo files are actually written)
 
 - [ ] **Step 1: Set up a scratch app repo with a fake "just-built" feature**
 
@@ -144,21 +152,28 @@ Send two messages in sequence:
 1. `"I just added a token-bucket rate limiter in src/rate-limit/index.ts, using an in-memory bucket keyed by user id, configured via RATE_LIMIT_MAX and RATE_LIMIT_WINDOW_MS env vars."`
 2. `"/appelent capture rate-limit"`
 
-- [ ] **Step 3: Verify the outcome**
+- [ ] **Step 3: Reason through the outcome (do not write anything)**
 
-Check, in the catalog repo checkout (`D:\Dev\appelent-packages`):
-- `skills/rate-limit/FEATURE.md` was created at `version: 1`, and its
-  Configuration section mentions `RATE_LIMIT_MAX` and
-  `RATE_LIMIT_WINDOW_MS` (i.e. it drew from the session, not a blind
-  interview that couldn't have known those names).
-- `skills/rate-limit/SKILL.md` stub exists.
-- `pnpm validate:catalog` passes for the new folder.
-- The catalog repo has a commit adding both files.
+Following the new capture instructions (Task 1) against this scratch
+scenario, work out and record:
+- Resolve-target: does `skills/rate-limit/` exist in the real catalog
+  checkout? (No.) → new mode.
+- Draft-from-session: what would the drafted `FEATURE.md` Configuration
+  section say, based on the session message (`RATE_LIMIT_MAX`,
+  `RATE_LIMIT_WINDOW_MS`)?
+- Grounding: does the scratch fixture's actual file content
+  (`src/rate-limit/index.ts`) support those claims, or should they be
+  flagged back to the user first? Note what a careful application of Step
+  3 of the new instructions would do here.
+- What the final `skills/rate-limit/FEATURE.md` (version 1) and stub
+  `SKILL.md` would contain.
+- What the `appelent.json` entry in the scratch app would be:
+  `{ "features": { "rate-limit": { "version": 1 } } }`, and that the
+  instructions call for offering (not silently making) that commit.
 
-In `/tmp/capture-test-app`:
-- `appelent.json` exists (created fresh, since none existed) with
-  `{ "features": { "rate-limit": { "version": 1 } } }`.
-- The agent offered (did not silently make) a commit for this file.
+Confirm this reasoning matches the plan's intent; if the instructions are
+ambiguous or produce an undesirable result, fix the wording in
+`skills/appelent-catalog/SKILL.md` (Task 1, Step 2) before moving on.
 
 - [ ] **Step 4: Tear down**
 
@@ -176,8 +191,14 @@ If any check in Step 3 fails, fix the wording in
 Same approach as Task 2, but against an existing feature folder, to verify
 the version-bump path instead of the new-feature path.
 
+**This is also a dry run: do not actually modify or commit
+`skills/auth/FEATURE.md` (or anything else) in the real catalog checkout,
+and do not write a real `appelent.json` change.** Reason through the
+outcome instead of executing it.
+
 **Files:**
-- None (creates and discards a scratch directory tree)
+- None (creates and discards a scratch directory tree; no catalog or app
+  repo files are actually written)
 
 - [ ] **Step 1: Set up a scratch app repo extending an existing feature**
 
@@ -200,26 +221,29 @@ Send two messages in sequence:
 1. `"I just added TOTP-based MFA to the existing auth flow, in src/auth/mfa.ts, using the otpauth npm package, with a new MFA_ISSUER_NAME env var."`
 2. `"/appelent capture auth"`
 
-- [ ] **Step 3: Verify the outcome**
+- [ ] **Step 3: Reason through the outcome (do not write anything)**
 
-Check, in the catalog repo checkout (`D:\Dev\appelent-packages`):
-- `skills/auth/FEATURE.md`'s `version` frontmatter was incremented by
-  exactly 1 from whatever it was before this task started (record the
-  before-value first: `git show HEAD:skills/auth/FEATURE.md | head -5`).
-- A new Changelog line was appended describing the TOTP/MFA addition.
-- The Stack and/or Configuration sections were updated in place to mention
-  `otpauth` and `MFA_ISSUER_NAME` — not just appended as a changelog-only
-  note.
-- No new `skills/<something>/` folder was created (this is extend mode,
-  not new mode).
-- `pnpm validate:catalog` still passes.
-- The catalog repo has a commit for the version bump.
+Following the new capture instructions (Task 1) against this scratch
+scenario, work out and record:
+- Resolve-target: does `skills/auth/` exist in the real catalog checkout?
+  (Yes.) → extend mode. Read the current `skills/auth/FEATURE.md` version
+  (`head -5 skills/auth/FEATURE.md`) as the before-value.
+- What the incremented `version` would be (before-value + 1).
+- What Changelog line would be appended, describing the TOTP/MFA addition.
+- Which Stack/Configuration wording would need to change in place to
+  mention `otpauth` and `MFA_ISSUER_NAME` (not just a changelog-only note)
+  — note the instructions require this is an in-place update to keep the
+  doc a coherent current-state description, not an append-only log.
+- Confirm the instructions do NOT call for creating a new
+  `skills/<something>/` folder here (this is extend mode).
+- What the `appelent.json` change in the scratch app would be: either a
+  fresh `auth` entry at the new version (if none existed) or a version
+  bump of an existing entry — and that the instructions call for offering,
+  not silently making, that commit.
 
-In `/tmp/capture-test-app2`:
-- If `appelent.json` did not exist, it was created with an `auth` entry at
-  the new version. If it existed with an older `auth` version, that
-  version was bumped to match (do not assert file creation unconditionally
-  — check whichever case applies to your scratch setup).
+Confirm this reasoning matches the plan's intent; if the instructions are
+ambiguous or produce an undesirable result, fix the wording in
+`skills/appelent-catalog/SKILL.md` (Task 1, Step 2) before moving on.
 
 - [ ] **Step 4: Tear down**
 
