@@ -7,7 +7,9 @@ description: App/project-side companion to the Appelent feature catalog (the /ap
 
 Operates on the current app repo (its `appelent.json`, `package.json`, and
 source) and, for `status --all`, on `projects.json` in the catalog repo
-checkout (`D:\Dev\appelent-packages`).
+checkout — see "Locating the catalog repo checkout" in the `appelent-feature`
+skill (`../appelent-feature/SKILL.md`) for how to find it; the same
+resolution order applies here.
 
 Subcommands (also reachable by natural language):
 
@@ -28,7 +30,13 @@ baseline`.
 ## status [--all]
 
 For the current app (or for each path in the catalog repo's
-`projects.json` when `--all`; skip and report missing paths, never fail):
+`projects.json` when `--all`; skip and report missing paths, never fail).
+Plain `status` only reads the plugin's own bundled `FEATURE.md` files
+(`../<feature>/FEATURE.md`, same as `show`), so it works anywhere the
+plugin is loaded, including Claude Code web sessions. `--all` additionally
+needs `projects.json` from a local catalog repo checkout (see "Locating
+the catalog repo checkout" in `appelent-feature`) — skip it there if none
+is found.
 
 1. Read `appelent.json`; for each recorded feature compare its version to
    the catalog FEATURE.md version. Report: up to date, or behind (show

@@ -11,6 +11,26 @@ to this one (`../<feature>/`) that is not `appelent-feature`, `appelent-project`
 integer `version`, optional `package` frontmatter) and `SKILL.md` (apply/update
 procedure).
 
+## Locating the catalog repo checkout
+
+`apply baseline`'s `projects.json` registration and `capture` (below) write
+into this catalog repo's own git history — they need a writable local
+checkout, not wherever this plugin happens to be loaded/cached from.
+Resolve it in this order:
+
+1. `$APPELENT_CATALOG_PATH`, if set.
+2. The current working directory (or an ancestor), if it's already this
+   catalog repo — i.e. has `.claude-plugin/marketplace.json` with
+   `"name": "appelent"`.
+3. `D:\Dev\appelent-packages`, the maintainer's local dev checkout, if it
+   exists.
+4. None found — stop and say so plainly: these operations need a local
+   catalog repo checkout (set `APPELENT_CATALOG_PATH`, or run them from
+   inside a clone of `AppElent/appelent-packages`). This is expected on
+   Claude Code web sessions, which only check out the current app repo —
+   skip these steps there, or do the catalog-repo edit from a separate web
+   session opened on the catalog repo itself.
+
 Subcommands (also reachable by natural language):
 
 ## help
@@ -59,8 +79,8 @@ version.
 When the feature is `baseline` (this is how a project is onboarded into
 the mechanism — new scaffold or existing unmanaged app alike), finish by
 offering to add the app's absolute path to `projects.json` in the catalog
-repo checkout (`D:\Dev\appelent-packages`) so `status --all` covers it;
-commit that change in the catalog repo.
+repo checkout (see "Locating the catalog repo checkout" above) so `status
+--all` covers it; commit that change in the catalog repo.
 
 ## capture <topic>
 
@@ -88,8 +108,8 @@ what we just built as `<topic>`, ask about anything unclear."
    remembered fuzzily.
 4. **Fill gaps.** Ask the user targeted questions only for what's still
    missing or uncertain after steps 2-3, not a full interview.
-5. **Write the catalog files**, in the catalog repo checkout
-   (`D:\Dev\appelent-packages`):
+5. **Write the catalog files**, in the catalog repo checkout (see
+   "Locating the catalog repo checkout" above):
    - New mode: create `skills/<topic>/FEATURE.md` at `version: 1`
      following the contract (frontmatter name/version/description +
      sections What/Stack/Architecture/Configuration/Changelog) and a stub

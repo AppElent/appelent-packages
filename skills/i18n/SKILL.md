@@ -6,9 +6,11 @@ description: Use when adding internationalization to an Appelent TanStack Start 
 # i18n
 
 Scaffolds internationalization for a TanStack Start + Clerk app using the
-shared `@appelent/i18n` package (GitHub Packages, `D:\Dev\appelent-packages\packages\i18n`)
-for the engine, plus per-app scaffolding for the parts that can't be shared:
-message dictionaries and UI wiring.
+shared `@appelent/i18n` package (GitHub Packages; source at
+`../../packages/i18n` relative to this file, i.e. `packages/i18n` at the
+root of this catalog repo checkout) for the engine, plus per-app
+scaffolding for the parts that can't be shared: message dictionaries and
+UI wiring.
 
 **Split of responsibilities** — don't blur this line:
 - **`@appelent/i18n` (the package)**: locale resolution (`resolveLocale`,

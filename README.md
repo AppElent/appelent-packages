@@ -36,6 +36,14 @@ local Directory source — that copies `node_modules` and fails on Windows.
 - **Update:** `claude plugin update appelent`.
 - **Codex:** `powershell -File scripts/setup-codex-skills.ps1` junctions the
   feature folders into `~/.codex/skills`.
+- **Claude Code web:** `.claude/settings.json` in this repo declares and
+  enables the plugin, so opening this repo (or any repo that carries the
+  same `.claude/settings.json`) on [claude.ai/code](https://claude.ai/code)
+  loads it automatically — no manual install step. `apply baseline`,
+  `capture`, and `status --all` still need a writable local checkout of
+  this catalog repo (web sessions only check out the current repo); set
+  `$APPELENT_CATALOG_PATH` if it isn't at the default
+  `D:\Dev\appelent-packages`, or skip those steps on web.
 
 ## Usage
 

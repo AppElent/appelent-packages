@@ -11,9 +11,11 @@ a candidate — do not write a design/plan from scratch or invent a local patter
 The source of truth for how to consume it is the package README (tool-agnostic,
 also what Codex reads), not this skill:
 
-- **Package + README**: `D:\Dev\appelent-packages\packages\cli` — `createCli({ appName })`
-  factory, the `cli/index.ts` bin-wrapper pattern, config/env conventions, and
-  the `CliCommand` extension seam for app-specific domain commands.
+- **Package + README**: `../../packages/cli` relative to this file (i.e.
+  `packages/cli` at the root of this catalog repo checkout) — `createCli({
+  appName })` factory, the `cli/index.ts` bin-wrapper pattern, config/env
+  conventions, and the `CliCommand` extension seam for app-specific domain
+  commands.
 - **Reference implementation**: `workouts` — `cli/index.ts` wraps
   `createCli({ appName: "workouts" })`; `@appelent/cli` is a normal dependency.
 - **New-app bootstrap**: the `baseline` feature (shared `@appelent` packages step).

@@ -1,0 +1,16 @@
+{
+	"extraKnownMarketplaces": {
+		"appelent": {
+			"source": {
+				"source": "github",
+				"repo": "AppElent/appelent-packages"
+			}
+		}
+	},
+	"enabledPlugins": [
+		{
+			"marketplace": "appelent",
+			"plugin": "appelent"
+		}
+	]
+}

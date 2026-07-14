@@ -494,8 +494,9 @@ never raw `tsc`/`vitest`/`biome` — no per-project detection.
     context and invokes the committed `review-session` skill.
 
 - [ ] **(f) Review skills** under `.claude/skills/` — copy the `appelent-packages`
-  plugin's own bundled `skills/review-app` and `skills/review-session` (from this
-  catalog repo checkout, `D:\Dev\appelent-packages`) into the app repo as
+  plugin's own bundled `skills/review-app` and `skills/review-session` (siblings
+  of this baseline skill — `../review-app` and `../review-session` relative to
+  this file, wherever the plugin itself is loaded from) into the app repo as
   `.claude/skills/review-app` and `.claude/skills/review-session`. They're already
   named/pointed correctly (pnpm-only, `./docs/review-notes/` output, no `custom-`
   prefix to strip) — copy as-is, no edits needed. Also copy
