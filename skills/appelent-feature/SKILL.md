@@ -83,6 +83,18 @@ list.
    commit as the wiring: `"<feature>": { "version": <FEATURE.md version>,
    "options": { ... } }` (omit `options` if none were chosen). Create the
    file with `{ "features": {} }` shape if missing.
+4. **Reflect on the apply itself, not the app.** While working through
+   steps 1-2, keep a running note of friction with `FEATURE.md`/
+   `SKILL.md` themselves — a command that didn't work as documented, a
+   missing or wrong code example, an ambiguous instruction, an option you
+   had to guess at. This is about the skill/docs, not the app code just
+   wired — same "flag uncertainty explicitly" principle as `capture`
+   (step 3) and `fix` (step 3) elsewhere.
+   - Nothing noteworthy → say nothing further; don't force a report.
+   - One or more entries → briefly summarize them to the user, then
+     propose filing a single catalog issue via `issue <text>` (title =
+     short summary, body = the individual points). Ask before filing —
+     never file automatically.
 
 With `--update`: read the app's recorded version, apply only the
 Changelog deltas between recorded and current, then update the recorded
