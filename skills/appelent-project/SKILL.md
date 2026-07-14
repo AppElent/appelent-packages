@@ -1,6 +1,6 @@
 ---
 name: appelent-project
-description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), note an improvement idea for later (suggest) or pick one back up (suggestions) — also reachable via /appelent:feature suggest/suggestions — run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or copy plugin skill folders into this app (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
+description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), note an improvement idea for later (suggest), pick one back up for full brainstorming (suggestions), or triage-and-implement one or more suggestions directly (fix) — all three are also reachable via /appelent:feature — run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or copy plugin skill folders into this app (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
 ---
 
 # appelent-project
@@ -20,8 +20,8 @@ subcommands below in one line each, including `upgrade-deps` (safely
 upgrade this app's dependencies) and `sync-skills <name>...` (copy plugin
 skill folders into this app's `.claude/skills/`). Mention that
 `/appelent:feature` covers catalog-side operations (list available
-features, show, apply, capture) and also exposes `suggest`/`suggestions`
-as an alternate entry point to the same braindump mechanism.
+features, show, apply, capture) and also exposes `suggest`/`suggestions`/
+`fix` as alternate entry points to the same braindump mechanism.
 
 ## list
 
@@ -101,6 +101,47 @@ suggestions` is an alternate entry point to the same steps below.
    --repo AppElent/appelent-packages`. Never close it without asking —
    same "propose, don't silently act" principle `status` and `apply`
    already follow for app-side edits.
+
+## fix <n> [n...]
+
+Triage one or more braindumped suggestions with a lightweight
+analyze-then-choose loop, instead of going straight into full
+brainstorming for every issue regardless of how simple it is. Reachable
+via natural language, e.g. "fix suggestion #3", "let's knock out a couple
+of these suggestions". `/appelent:feature fix` is an alternate entry point
+to the same steps below.
+
+1. For each issue number given: `gh issue view <n> --repo
+   AppElent/appelent-packages` to get its title/body.
+2. **Small analysis per issue**, done by you, not delegated to a skill:
+   figure out where the change actually belongs — this app repo, the
+   catalog repo checkout (see "Locating the catalog repo checkout" in
+   `../appelent-feature/SKILL.md`), a specific feature's `FEATURE.md`/
+   `SKILL.md`, or somewhere else entirely — and sketch one concrete
+   solution: which files change, roughly how, and any real open question
+   or risk you hit while sketching it.
+3. **Propose, then ask.** Show the user the sketch per issue and ask
+   whether to `brainstorm/plan` it or `just go`:
+   - If step 2 produced a single confident, low-risk solution, offer both
+     options but default the recommendation to `just go`.
+   - If step 2 surfaced a genuine design choice, ambiguity, or a solution
+     you're not confident in, say so and recommend `brainstorm/plan`
+     instead of asking — same "flag uncertainty explicitly" principle as
+     everywhere else.
+4. **`brainstorm/plan`** — hand off exactly like `suggestions` above
+   (steps 4-5): the issue's title/body/your analysis as context for the
+   `brainstorming` skill, then offer to close the issue once that
+   concludes.
+5. **`just go`** — implement the sketched solution directly in the
+   repo/location identified in step 2, following the normal skills that
+   would apply to that kind of change anyway (e.g. `test-driven-development`
+   for app code, `pnpm validate:catalog` for catalog edits). No
+   brainstorming/writing-plans ceremony. Once it's done and verified,
+   offer to close the issue — never close it without asking.
+6. With multiple issue numbers: work through steps 1-3 for each before
+   acting on any of them, so the user sees every proposal up front and can
+   route each one (`brainstorm/plan` vs `just go` vs skip) independently,
+   rather than being surprised mid-batch.
 
 ## review-app
 

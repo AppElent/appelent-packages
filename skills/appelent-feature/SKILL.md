@@ -1,6 +1,6 @@
 ---
 name: appelent-feature
-description: Front door for the Appelent feature catalog (the /appelent:feature command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/fold work into an existing one, or braindump an idea to improve or add a feature (suggest/suggestions). For an app's installed-feature status or review passes, see the appelent-project skill (/appelent:project) instead.
+description: Front door for the Appelent feature catalog (the /appelent:feature command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/fold work into an existing one, braindump an idea to improve or add a feature (suggest), pick one back up for full brainstorming (suggestions), or triage-and-implement one or more suggestions directly (fix). For an app's installed-feature status or review passes, see the appelent-project skill (/appelent:project) instead.
 ---
 
 # appelent-feature
@@ -39,9 +39,9 @@ For `help`, or when invoked with no/unrecognized arguments: explain the
 subcommands below in one line each, then state how onboarding works: a new
 or existing app joins the mechanism via `apply baseline`, after which
 features are added à la carte with `apply <feature>`, and improvement ideas
-can be braindumped anytime with `suggest`/`suggestions`. Mention that
-`/appelent:project` covers an app's installed-feature status and review
-passes.
+can be braindumped anytime with `suggest`, resumed with `suggestions`, or
+triaged-and-fixed with `fix`. Mention that `/appelent:project` covers an
+app's installed-feature status and review passes.
 
 ## list
 
@@ -151,6 +151,16 @@ List open braindumped ideas and resume one — same mechanism as
 full procedure: list via `gh issue list --label catalog-suggestion`, let
 the user pick one, hand its title/body to the `brainstorming` skill, then
 offer to close the issue once that work concludes).
+
+## fix <n> [n...]
+
+Triage one or more braindumped suggestions with a lightweight
+analyze-then-choose loop, instead of full brainstorming for every issue
+regardless of size — same mechanism as `/appelent:project fix` (see
+`../appelent-project/SKILL.md` for the full procedure: fetch each issue,
+sketch a concrete solution and where it belongs, propose `brainstorm/plan`
+vs `just go` per issue — defaulting to `brainstorm/plan` whenever the
+sketch is genuinely uncertain — then implement or hand off accordingly).
 
 For an app's installed-feature status or review passes (`review-app`/
 `review-session`), see the `appelent-project` skill (`/appelent:project`).
