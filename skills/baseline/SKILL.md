@@ -38,6 +38,13 @@ Before starting, check (use `node -e "...existsSync..."` instead of `ls ... 2>/d
 
 ## Task
 
+Each numbered step below is individually addressable via `/appelent:feature
+apply baseline --step <n>` (see `appelent-feature`'s `steps`/`apply`
+subcommands) — useful for re-running or catching up a single step (e.g.
+step 8's PR-preview workflow) on an app that's already on baseline for
+everything else. Every step still assumes the "Gathering context" section
+above ran first, regardless of which steps were selected.
+
 ### 1. Package manager (pnpm)
 
 Every app in this stack uses **pnpm** — never npm or yarn. Fix before touching anything else, since the scripts and CI steps below are written in pnpm form:
@@ -718,11 +725,16 @@ For the current repo:
 
 1. **Write or update `appelent.json` at the app root.** Its shape is
    `{ "features": { "<name>": { "version": <int>, "options": { ... } } } }`.
-   Ensure `features.baseline = { "version": 2 }`, plus an entry for every other
+   Ensure `features.baseline = { "version": 3 }`, plus an entry for every other
    feature applied during this bootstrap pass — e.g. `auth` if the app uses
    `@appelent/auth`, `cli` if it ships a CLI (step 7), `i18n` if step 13 ran.
    Merge, don't clobber — leave existing feature entries and their `options`
    alone. Commit `appelent.json` together with the wiring it records.
+   A full bootstrap pass like this one always writes the plain
+   `{ "version": n }` shape (every step ran). A partial `apply baseline
+   --step <n>` instead records `{ "version": n, "steps": [n, ...] }` — see
+   `appelent-feature`'s `apply` subcommand; its absence means "fully
+   applied," so this bootstrap flow never needs to write it.
 2. **Stamp the managed block** in the app's `CLAUDE.md` and `AGENTS.md` using
    the exact text in the "Managed block" section at the end of this file (the
    same block goes in both files, between the `appelent-managed` markers).

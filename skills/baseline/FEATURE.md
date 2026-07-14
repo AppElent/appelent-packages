@@ -1,6 +1,6 @@
 ---
 name: baseline
-version: 2
+version: 3
 description: The Appelent project baseline for TanStack Start + Convex + Clerk + Cloudflare Workers apps
 ---
 
@@ -43,5 +43,9 @@ owns stamping the managed block in `CLAUDE.md`/`AGENTS.md` and creating
 
 ## Changelog
 
+- 3 — baseline's numbered steps are individually addressable: `/appelent
+  apply baseline --step <n>` (re)applies just one, `steps baseline` lists
+  them, and `apply <feature> --all` applies to every project registered in
+  `projects.json`, not just the current app
 - 2 — baseline includes an app-local GitHub issue reporter scaffold
 - 1 — initial capture (migrated from the `custom-bootstrap` global skill)
