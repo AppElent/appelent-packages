@@ -1,6 +1,7 @@
 # Links every skill folder in this repo's skills/ (the feature folders plus
-# the appelent-feature/appelent-project front doors and review-app/review-session)
-# into ~/.codex/skills as a directory junction, so Codex discovers the same
+# the appelent-feature/appelent-project front doors and the review-app/
+# review-session/upgrade-deps workflow skills) into ~/.codex/skills as a
+# directory junction, so Codex discovers the same
 # Agent Skills files Claude Code gets via the plugin. Re-run after adding a feature.
 $ErrorActionPreference = "Stop"
 

@@ -2,7 +2,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REQUIRED_SECTIONS = ["What", "Stack", "Architecture", "Configuration", "Changelog"];
-const EXCLUDED = new Set(["appelent-feature", "appelent-project", "review-app", "review-session"]);
+const EXCLUDED = new Set([
+	"appelent-feature",
+	"appelent-project",
+	"review-app",
+	"review-session",
+	"upgrade-deps",
+]);
 
 function parseFrontmatter(text) {
 	const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);

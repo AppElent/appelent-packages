@@ -17,9 +17,9 @@ runtime code under `packages/` (published to GitHub Packages as `@appelent/*`).
 | i18n | packaged | `@appelent/i18n` |
 | mcp | documented | — |
 
-`review-app` and `review-session` also ship as plugin skills (for reviewing
-this repo itself) but aren't catalog features — no `FEATURE.md`, so no table
-row.
+`review-app`, `review-session`, and `upgrade-deps` also ship as plugin
+skills (workflow helpers meant to be copied into an app, see `sync-skills`
+below) but aren't catalog features — no `FEATURE.md`, so no table row.
 
 ## Install (Claude Code)
 
@@ -71,7 +71,7 @@ sync.
 ## Usage
 
 - Feature catalog: `/appelent:feature list | show <feature> | apply <feature> [options] | capture <topic>`.
-- Project: `/appelent:project list | status [--all] | suggest <idea> | suggestions | review-app | review-session`.
+- Project: `/appelent:project list | status [--all] | suggest <idea> | suggestions | review-app | review-session | upgrade-deps | sync-skills <name>...`.
 - Onboard a project (new or existing): `/appelent:feature apply baseline`, then
   add features à la carte.
 - Apps record their opted-in features and options in their own `appelent.json`.
