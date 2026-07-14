@@ -1,6 +1,6 @@
 ---
 name: appelent-feature
-description: Front door for the Appelent feature catalog (the /appelent:feature command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), or capture a new feature/fold work into an existing one. For an app's installed-feature status, improvement braindumps, or review passes, see the appelent-project skill (/appelent:project) instead.
+description: Front door for the Appelent feature catalog (the /appelent:feature command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/fold work into an existing one, or braindump an idea to improve or add a feature (suggest/suggestions). For an app's installed-feature status or review passes, see the appelent-project skill (/appelent:project) instead.
 ---
 
 # appelent-feature
@@ -38,9 +38,10 @@ Subcommands (also reachable by natural language):
 For `help`, or when invoked with no/unrecognized arguments: explain the
 subcommands below in one line each, then state how onboarding works: a new
 or existing app joins the mechanism via `apply baseline`, after which
-features are added à la carte with `apply <feature>`. Mention that
-`/appelent:project` covers an app's installed-feature status, improvement
-braindumps, and review passes.
+features are added à la carte with `apply <feature>`, and improvement ideas
+can be braindumped anytime with `suggest`/`suggestions`. Mention that
+`/appelent:project` covers an app's installed-feature status and review
+passes.
 
 ## list
 
@@ -128,6 +129,28 @@ what we just built as `<topic>`, ask about anything unclear."
    separate commit in the app repo (a different repo from the catalog
    checkout) — offer it, never make it silently.
 
-For an app's installed-feature status, improvement braindumps
-(`suggest`/`suggestions`), or review passes (`review-app`/`review-session`),
-see the `appelent-project` skill (`/appelent:project`).
+## suggest <idea>
+
+Braindump an idea to improve an existing catalog feature or add a new one,
+as a GitHub issue — without interviewing the user or interrupting whatever
+they're doing. Reachable via natural language, e.g. "suggest a feature
+idea: X", "this feature should also...".
+
+Same mechanism as `/appelent:project suggest` (see
+`../appelent-project/SKILL.md` for the full procedure): the user's idea
+becomes the issue title, the `catalog-suggestion` label is ensured/applied,
+and it's always filed against `AppElent/appelent-packages` via `gh issue
+create`, regardless of which repo is currently open. Exposed here too
+because most feature-shaped ideas surface while browsing or applying the
+catalog, not while working in an app.
+
+## suggestions
+
+List open braindumped ideas and resume one — same mechanism as
+`/appelent:project suggestions` (see `../appelent-project/SKILL.md` for the
+full procedure: list via `gh issue list --label catalog-suggestion`, let
+the user pick one, hand its title/body to the `brainstorming` skill, then
+offer to close the issue once that work concludes).
+
+For an app's installed-feature status or review passes (`review-app`/
+`review-session`), see the `appelent-project` skill (`/appelent:project`).

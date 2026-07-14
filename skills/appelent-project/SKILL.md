@@ -1,6 +1,6 @@
 ---
 name: appelent-project
-description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), note an improvement idea for later (suggest) or pick one back up (suggestions), run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or copy plugin skill folders into this app (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
+description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), note an improvement idea for later (suggest) or pick one back up (suggestions) — also reachable via /appelent:feature suggest/suggestions — run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or copy plugin skill folders into this app (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
 ---
 
 # appelent-project
@@ -20,7 +20,8 @@ subcommands below in one line each, including `upgrade-deps` (safely
 upgrade this app's dependencies) and `sync-skills <name>...` (copy plugin
 skill folders into this app's `.claude/skills/`). Mention that
 `/appelent:feature` covers catalog-side operations (list available
-features, show, apply, capture).
+features, show, apply, capture) and also exposes `suggest`/`suggestions`
+as an alternate entry point to the same braindump mechanism.
 
 ## list
 
@@ -56,7 +57,9 @@ is found.
 Zero-friction braindump: log an improvement idea for the catalog mechanism
 (or a specific feature) as a GitHub issue, without interviewing the user or
 interrupting whatever they're doing. Reachable via natural language, e.g.
-"note an idea: X", "suggest that we...".
+"note an idea: X", "suggest that we...". This is the canonical procedure —
+`/appelent:feature suggest` is an alternate entry point to the same steps
+below.
 
 1. Use the user's one-line idea as the issue title. If their message
    included more context, use it as the issue body; otherwise leave the
@@ -79,7 +82,8 @@ interrupting whatever they're doing. Reachable via natural language, e.g.
 
 List open braindumped ideas and resume one. Reachable via natural
 language, e.g. "what improvement ideas do I have?", "let's work on one of
-my suggestions".
+my suggestions". This is the canonical procedure — `/appelent:feature
+suggestions` is an alternate entry point to the same steps below.
 
 1. List open candidates: `gh issue list --repo AppElent/appelent-packages
    --label catalog-suggestion --state open`. Show the user each issue's
