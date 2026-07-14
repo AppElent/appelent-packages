@@ -1,7 +1,7 @@
 # @appelent/cli
 
 Reusable command-line scaffolding for Appelent apps. Ships the generic `auth`
-and `config` commands (token-based login, credential storage, JSON/table
+and `config` commands (browser/token login, credential storage, JSON/table
 output, a hand-rolled arg parser) and an extension seam so each app can layer
 its own domain commands on top without forking the package.
 
@@ -51,6 +51,20 @@ Wire it as a script (apps in this stack use `tsx`, not a published bin):
 
 `workouts` (the reference implementation) does exactly this.
 
+Add a wrapper smoke script and CI workflow in the consuming app so the local
+wrapper stays healthy:
+
+```jsonc
+{
+	"scripts": {
+		"cli:smoke": "tsx cli/index.ts --help && tsx cli/index.ts config get --json && tsx cli/index.ts auth status"
+	}
+}
+```
+
+The workflow should install with the normal GitHub Packages auth step, set
+`<APPNAME>_CONFIG_DIR` to a temporary directory, and run `pnpm cli:smoke`.
+
 ### What `appName` controls
 
 Everything app-specific is derived from `appName` — nothing is hardcoded:
@@ -69,6 +83,7 @@ no config file exists yet.
 ## Built-in commands
 
 ```
+<appName> auth login                   # browser login through the app backend
 <appName> auth login --token <token>   # store a token credential
 <appName> auth status [--json]         # signed-in / expired / not signed in
 <appName> auth logout                  # clear the stored credential
@@ -77,8 +92,38 @@ no config file exists yet.
 <appName> config set convex-url <value>
 ```
 
-Browser login (`auth login` with no `--token`) is intentionally stubbed and
-throws `Unsupported` — token auth is the only implemented path today.
+Browser login starts a loopback HTTP callback server, opens the app backend,
+waits for the backend to redirect back with a token, and stores the same
+credential shape as `--token` login. The default backend URL is built from
+`apiUrl` plus `/api/cli/auth/login`; override `apiUrl` with
+`config set api-url <value>`.
+
+Default browser-login contract:
+
+1. CLI opens:
+   `<apiUrl>/api/cli/auth/login?redirect_uri=<local-callback-url>&state=<state>`
+2. App backend authenticates the user in the browser.
+3. App backend redirects to `redirect_uri` with `token=<jwt-or-token>` and the
+   same `state`.
+4. CLI validates `state`, saves `token`, and exits successfully.
+
+If authentication fails, redirect back with `error=<code>` and optional
+`error_description=<message>`. The CLI reports that as a login failure. The app
+backend route, browser UI, session exchange, and token issuance are
+project-specific and stay in the consuming app.
+
+Apps can customize the generic browser-login paths when creating the CLI:
+
+```ts
+const { runCli } = createCli({
+	appName: "workouts",
+	auth: {
+		loginPath: "/api/cli/auth/login",
+		callbackPath: "/callback",
+		timeoutMs: 120_000,
+	},
+});
+```
 
 ## Add app-specific commands
 
@@ -94,7 +139,7 @@ const exercise: CliCommand = {
 	name: "exercise",
 	usage: ["workouts exercise list"],
 	handle: async (positionals, flags, runtime) => {
-		// runtime: { appName, defaultApiUrl, env, writeOut, writeErr }
+		// runtime: { appName, defaultApiUrl, auth, env, writeOut, writeErr }
 		// use loadConfig(runtime) / requireCredential(runtime) as needed
 		runtime.writeOut("...\n");
 		return 0; // exit code
@@ -108,13 +153,28 @@ Dispatch order: built-in `auth` → built-in `config` → registered `commands` 
 `Unknown command`. Keep the package generic — add domain commands in the app,
 don't fork.
 
+## Publishing model
+
+Most apps do **not** need to publish themselves to use a CLI. The default
+Appelent pattern is repo-local: `pnpm <app>` runs the app's TypeScript wrapper
+through `tsx`.
+
+Publish only this shared `@appelent/cli` package when generic CLI behavior
+changes (for example browser login, config storage, output helpers, or shared
+auth helpers), then bump consuming apps to the newly published version. Do not
+publish an app package just to get `pnpm <app>` working. If an app intentionally
+needs an npm-installable app-specific binary later, design that separately: it
+needs a scoped package name, a real compiled JS `bin`, and a focused publish
+workflow.
+
 ## Public API
 
 - `createCli(options)` → `{ runCli(args, ioRuntime) }` — the factory most apps use.
 - `runCli(args, ioRuntime, options)` — lower-level entry the factory wraps.
-- Types: `RunCliOptions`, `CliCommand`, `CliRuntime`, `IoRuntime`, `CliResult`.
+- Types: `RunCliOptions`, `CliCommand`, `CliRuntime`, `IoRuntime`, `CliResult`,
+  `BrowserLoginOptions`.
 - Auth helpers: `saveToken`, `requireCredential`, `getCredentialStatus`,
-  `logout`, `decodeJwtExpiry`.
+  `logout`, `decodeJwtExpiry`, `startBrowserLogin`.
 - Config helpers: `loadConfig`, `saveConfig`, `clearCredential`, `configDir`,
   `configPath`; types `CliConfig`, `ConfigRuntime`, `Credential`.
 - Output/arg/error utilities: `formatJson`, `formatTable`, `formatDetail`,

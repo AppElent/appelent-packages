@@ -196,17 +196,126 @@ describe("auth command", () => {
 		});
 	});
 
-	it("keeps the browser login fallback stubbed", async () => {
+	it("stores a browser login token returned to the local callback", async () => {
+		const configDir = await createConfigDir();
+		const token = unsignedJwt(Math.floor(Date.now() / 1000) + 3600);
+		const { runtime, stdout } = createRuntime(configDir);
+
+		const result = await runCli(["auth", "login"], runtime, {
+			appName: "workouts",
+			auth: {
+				loginPath: "/custom-cli-login",
+				callbackPath: "/custom-cli-callback",
+				openBrowser: async (loginUrl) => {
+					const url = new URL(loginUrl);
+					expect(url.origin).toBe("http://localhost:3000");
+					expect(url.pathname).toBe("/custom-cli-login");
+
+					const state = url.searchParams.get("state");
+					const redirectUri = url.searchParams.get("redirect_uri");
+					expect(state).toEqual(expect.any(String));
+					expect(redirectUri).toEqual(expect.any(String));
+
+					const callbackUrl = new URL(redirectUri ?? "");
+					expect(callbackUrl.hostname).toBe("127.0.0.1");
+					expect(callbackUrl.pathname).toBe("/custom-cli-callback");
+					callbackUrl.searchParams.set("state", state ?? "");
+					callbackUrl.searchParams.set("token", token);
+
+					const response = await fetch(callbackUrl);
+					expect(response.status).toBe(200);
+				},
+			},
+		});
+
+		expect(result.exitCode).toBe(0);
+		expect(stdout.join("")).toContain("Signed in through browser.");
+		await expect(
+			loadConfig({
+				appName: "workouts",
+				env: { WORKOUTS_CONFIG_DIR: configDir },
+			}),
+		).resolves.toMatchObject({
+			credential: { token, expiresAt: expect.any(Number) },
+		});
+	});
+
+	it("rejects browser login callbacks with the wrong state", async () => {
+		const configDir = await createConfigDir();
+		const token = unsignedJwt(Math.floor(Date.now() / 1000) + 3600);
+		const { runtime, stderr } = createRuntime(configDir);
+
+		const result = await runCli(["auth", "login"], runtime, {
+			appName: "workouts",
+			auth: {
+				openBrowser: async (loginUrl) => {
+					const url = new URL(loginUrl);
+					const callbackUrl = new URL(
+						url.searchParams.get("redirect_uri") ?? "",
+					);
+					callbackUrl.searchParams.set("state", "not-the-state");
+					callbackUrl.searchParams.set("token", token);
+
+					const response = await fetch(callbackUrl);
+					expect(response.status).toBe(400);
+				},
+			},
+		});
+
+		expect(result.exitCode).toBe(1);
+		expect(stderr.join("")).toContain("Browser login state did not match.");
+		await expect(
+			loadConfig({
+				appName: "workouts",
+				env: { WORKOUTS_CONFIG_DIR: configDir },
+			}),
+		).resolves.not.toHaveProperty("credential");
+	});
+
+	it("reports browser login backend errors", async () => {
 		const configDir = await createConfigDir();
 		const { runtime, stderr } = createRuntime(configDir);
 
 		const result = await runCli(["auth", "login"], runtime, {
 			appName: "workouts",
+			auth: {
+				openBrowser: async (loginUrl) => {
+					const url = new URL(loginUrl);
+					const callbackUrl = new URL(
+						url.searchParams.get("redirect_uri") ?? "",
+					);
+					callbackUrl.searchParams.set(
+						"state",
+						url.searchParams.get("state") ?? "",
+					);
+					callbackUrl.searchParams.set("error", "access_denied");
+					callbackUrl.searchParams.set("error_description", "Not allowed");
+
+					const response = await fetch(callbackUrl);
+					expect(response.status).toBe(400);
+				},
+			},
+		});
+
+		expect(result.exitCode).toBe(1);
+		expect(stderr.join("")).toContain("Browser login failed: Not allowed");
+	});
+
+	it("times out when browser login never returns a callback", async () => {
+		const configDir = await createConfigDir();
+		const { runtime, stderr } = createRuntime(configDir);
+
+		const result = await runCli(["auth", "login"], runtime, {
+			appName: "workouts",
+			auth: {
+				timeoutMs: 5,
+				openBrowser: () => undefined,
+			},
 		});
 
 		expect(result.exitCode).toBe(1);
 		expect(stderr.join("")).toContain(
-			"Browser login is not available yet. Use `workouts auth login --token <token>`.",
+			"Timed out waiting for browser login callback.",
 		);
 	});
 });

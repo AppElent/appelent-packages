@@ -1,4 +1,5 @@
 import { ArgsError, parseArgs } from "./args";
+import type { BrowserLoginOptions } from "./callbackServer";
 import { handleAuthCommand } from "./commands/auth";
 import { handleConfigCommand } from "./commands/config";
 import { CliError, formatError } from "./errors";
@@ -12,6 +13,7 @@ export type IoRuntime = {
 export type CliRuntime = IoRuntime & {
 	appName: string;
 	defaultApiUrl: string;
+	auth?: BrowserLoginOptions;
 };
 
 export type CliResult = {
@@ -31,6 +33,7 @@ export type CliCommand = {
 export type RunCliOptions = {
 	appName: string;
 	defaultApiUrl?: string;
+	auth?: BrowserLoginOptions;
 	commands?: CliCommand[];
 };
 
@@ -66,6 +69,7 @@ export async function runCli(
 		...ioRuntime,
 		appName: options.appName,
 		defaultApiUrl: options.defaultApiUrl ?? DEFAULT_API_URL,
+		auth: options.auth,
 	};
 
 	try {
