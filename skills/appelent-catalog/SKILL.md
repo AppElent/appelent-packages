@@ -1,6 +1,6 @@
 ---
 name: appelent-catalog
-description: Front door for the Appelent feature catalog (the /appelent command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/design decision, or check an app's feature status/freshness.
+description: Front door for the Appelent feature catalog (the /appelent command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature or fold work into an existing one, or check an app's feature status/freshness.
 ---
 
 # appelent-catalog
@@ -61,14 +61,49 @@ commit that change in the catalog repo.
 
 ## capture <topic>
 
-Interview the user about the design decision (what, stack, architecture,
-configuration), then in the catalog repo checkout
-(`D:\Dev\appelent-packages`) create `skills/<topic>/FEATURE.md` at
-`version: 1` following the contract (frontmatter name/version/description
-+ sections What/Stack/Architecture/Configuration/Changelog) and a stub
-`skills/<topic>/SKILL.md` whose body says to read FEATURE.md before
-building `<topic>` functionality. Run `pnpm validate:catalog` there, then
-commit both files.
+Fold a design decision into the catalog — either a brand-new feature or an
+addition to an existing one. Reachable via natural language, e.g. "capture
+what we just built as `<topic>`, ask about anything unclear."
+
+1. **Resolve the target.** Check for `../<topic>/` next to this skill.
+   - Exists → extend mode (version bump on that feature).
+   - Doesn't exist → new mode (fresh feature at version 1).
+   - If `<topic>` doesn't exist but the session's work looks like it
+     belongs to a different existing feature, ask the user to confirm the
+     target before continuing.
+2. **Draft from the session.** If this session built or extended
+   something, summarize its actual decisions — what, stack, architecture,
+   configuration, files touched — as the first draft. If there is no
+   session work to draw from (e.g. run from the catalog repo itself, or
+   capturing an idea not yet built), fall back to interviewing the user
+   from scratch as before.
+3. **Ground the draft.** For concrete claims in the draft (file paths,
+   package names, config keys), check them against the current app repo's
+   `git diff`/`git log` and actual file contents. Flag anything that
+   doesn't check out to the user instead of writing it down as fact — this
+   matters most in a long or compacted session where early details may be
+   remembered fuzzily.
+4. **Fill gaps.** Ask the user targeted questions only for what's still
+   missing or uncertain after steps 2-3, not a full interview.
+5. **Write the catalog files**, in the catalog repo checkout
+   (`D:\Dev\appelent-packages`):
+   - New mode: create `skills/<topic>/FEATURE.md` at `version: 1`
+     following the contract (frontmatter name/version/description +
+     sections What/Stack/Architecture/Configuration/Changelog) and a stub
+     `skills/<topic>/SKILL.md` whose body says to read FEATURE.md before
+     building `<topic>` functionality.
+   - Extend mode: increment the existing `FEATURE.md`'s `version`, append
+     a Changelog line describing the addition, and update the
+     Stack/Architecture/Configuration sections in place so the doc stays a
+     coherent description of current state (not an append-only log).
+6. Run `pnpm validate:catalog` in the catalog repo, then commit the
+   `FEATURE.md`/`SKILL.md` changes there.
+7. **Record it in the app.** Write/update the app's `appelent.json`: new
+   mode adds `"<topic>": { "version": 1, "options": {...} }`; extend mode
+   bumps the existing entry's `"version"` to match. Create the file with
+   `{ "features": {} }` shape first if it doesn't exist. This is a
+   separate commit in the app repo (a different repo from the catalog
+   checkout) — offer it, never make it silently.
 
 ## status [--all]
 
