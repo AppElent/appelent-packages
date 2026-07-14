@@ -21,7 +21,7 @@ Shared shape across roadmaps/archstudio, workouts, and satisfactory:
 - **Vitest** + jsdom + `@testing-library`.
 - **Tailwind v4** (`@tailwindcss/vite`).
 - **`@t3-oss/env-core`** for typed env validation.
-- **Shared `@appelent` packages** (private GitHub Packages scope: `@appelent/auth` in the default baseline, `@appelent/i18n` opt-in via step 12) — see step 7.
+- **Shared `@appelent` packages** (private GitHub Packages scope: `@appelent/auth` in the default baseline, `@appelent/i18n` opt-in via step 13) — see step 7.
 - **Package manager: pnpm, always.** Never npm or yarn — see step 1 for detecting/migrating, step 2 for the supply-chain hardening settings that go with it.
 
 ## Gathering context
@@ -32,6 +32,9 @@ Before starting, check (use `node -e "...existsSync..."` instead of `ls ... 2>/d
 - Current `package.json` scripts + deps.
 - Whether these exist: `convex/`, `convex/auth.config.ts`, `convex/seed.ts`, `wrangler.jsonc`, `wrangler.toml`, `tsr.config.json`, `.env.local`, `.env.example`, `.gitattributes`, `.github/workflows`, project `.npmrc`.
 - **If `.github/workflows/preview.yml` already exists**, `grep` its Convex deploy step for `--preview-run` — don't just confirm the file is present. A preview workflow authored before this rule (or by a prior session that skipped it) commonly deploys to a genuinely empty backend on every PR with no seed step at all; see step 8's preview-seeding subsection.
+- Whether an app-local GitHub issue reporter already exists: search for
+  `/api/github/issues`, `GITHUB_ISSUES_TOKEN`, and any issue-report modal or
+  keyboard shortcut before adding another one.
 
 ## Task
 
@@ -174,7 +177,7 @@ Ensure a `wrangler.jsonc` exists in my standard shape. For a TanStack Start app 
 
 ### 7. Shared `@appelent` packages (private registry)
 
-I maintain shared packages under the `@appelent` npm scope on GitHub Packages, published for reuse across these apps: `@appelent/auth` (Clerk/Convex auth glue, part of the default baseline), `@appelent/cli` (command-line scaffolding — opt-in, applied via the `cli` feature / `/appelent apply cli`), and `@appelent/i18n` (locale engine — opt-in, applied via the `i18n` feature, see step 12). Treat this as a growing list, not a one-off.
+I maintain shared packages under the `@appelent` npm scope on GitHub Packages, published for reuse across these apps: `@appelent/auth` (Clerk/Convex auth glue, part of the default baseline), `@appelent/cli` (command-line scaffolding — opt-in, applied via the `cli` feature / `/appelent apply cli`), and `@appelent/i18n` (locale engine — opt-in, applied via the `i18n` feature, see step 13). Treat this as a growing list, not a one-off.
 
 **When you create or generalize a shared `@appelent/*` package, its own README is the source of truth for consuming it** — tool-agnostic, so Codex and humans read it too (Claude skills are invisible to Codex, so a skill can never be the source). Keep the consuming app's `CLAUDE.md`, this step, and any feature skill as short *pointers* to that README, never duplicated copies. `@appelent/cli`'s README (`appelent-packages/packages/cli/README.md`) is the reference shape; when adding a README to a package that lacks one (e.g. `@appelent/auth`, whose integration currently lives only here in step 7), follow it.
 
@@ -190,7 +193,7 @@ I maintain shared packages under the `@appelent` npm scope on GitHub Packages, p
   with `NODE_AUTH_TOKEN` exported in the shell before install. Note this requirement in the project README's setup steps rather than assuming it's obvious.
 - For CI (`.github/workflows/*`, e.g. the PR preview workflow): confirm the install step writes the token to `~/.npmrc` from a repo/org secret (commonly `NODE_AUTH_TOKEN` or `secrets.GITHUB_TOKEN` if it has `read:packages`) before `install` runs. Flag it if missing — installs will fail on a runner with no token configured.
 - Confirm `pnpm-workspace.yaml` (if pnpm) doesn't need an `onlyBuiltDependencies` or `overrides` entry for the package — check its own postinstall/peer requirements.
-- `@appelent/auth` ships a dev-only `TestLoginButton` (gated by `shouldShowTestLogin`) — see step 9 for how Claude should use it when previewing an auth-gated app.
+- `@appelent/auth` ships a dev-only `TestLoginButton` (gated by `shouldShowTestLogin`) — see step 10 for how Claude should use it when previewing an auth-gated app.
 - **`@appelent/cli`** (command-line scaffolding: generic `auth`/`config` commands + a `CliCommand` extension seam) — add it only if the app should ship a CLI. Integration is a thin `cli/index.ts` wrapper calling `createCli({ appName: "<app>" })` plus a `"<app>": "tsx cli/index.ts"` script; add a `cli:smoke` wrapper script and a small CI workflow that installs with GitHub Packages auth and runs it. App-specific domain commands go in the app via the `commands` option, never forked into the package. The package README (`appelent-packages/packages/cli/README.md`) is the source of truth; `workouts` is the reference implementation. Most apps do not need to publish themselves for CLI use; publish `@appelent/cli` only for shared CLI behavior changes, then bump consuming app dependencies. If added, record the `cli` feature in `appelent.json` (see the feature-record section below).
 
 ### 8. GitHub Actions — PR preview workflow
@@ -343,7 +346,176 @@ Naming is project-specific, adapt it — don't copy these literally. Two example
 
 Never echo secret values into logs; the `>> ~/.npmrc` pattern above is safe because it writes to a file, not stdout. Do not create or rotate these secrets' *values* yourself without asking — you can add/update a secret via `gh secret set` if I hand you the value, but don't generate Cloudflare/Convex/Clerk credentials on my behalf.
 
-### 9. Claude Code preview config (`.claude/launch.json`)
+### 9. GitHub issue reporter (app-local)
+
+Every baseline app gets a small, app-local way to file GitHub issues from the
+running product. This is not a shared package in v1: stamp the route and modal
+into the consuming app, matching that app's route/component conventions.
+
+**No model call is part of v1.** The first version posts the user's text and
+captured context directly to GitHub. A model-assisted title/body drafting step
+can be layered on later, after the basic secure write path is proven.
+
+**Server route.** Add a TanStack Start server/API route at
+`/api/github/issues`. Use the app's installed TanStack Start route helper
+(`createServerFileRoute` in current Start apps, or the equivalent helper in
+that app's version), but preserve this request/response contract and keep the
+GitHub token server-only:
+
+```ts
+// Request shape
+type IssueReporterRequest = {
+	type: "bug" | "enhancement" | "docs" | "question";
+	text: string;
+	url: string;
+	user?: {
+		id?: string;
+		email?: string;
+		name?: string;
+	};
+};
+
+// Response shape
+type IssueReporterResponse =
+	| { ok: true; issueUrl: string }
+	| { ok: false; error: string };
+```
+
+Minimal route skeleton (adapt imports/handler wrapper to the app's exact
+TanStack Start version):
+
+```ts
+import { createServerFileRoute } from "@tanstack/react-start/server";
+
+const ISSUE_TYPES = new Set(["bug", "enhancement", "docs", "question"]);
+
+export const ServerRoute = createServerFileRoute("/api/github/issues").methods({
+	POST: async ({ request }) => {
+		const token = process.env.GITHUB_ISSUES_TOKEN;
+		const owner = process.env.GITHUB_REPOSITORY_OWNER;
+		const repo = process.env.GITHUB_REPOSITORY_NAME;
+		if (!token || !owner || !repo) {
+			return Response.json(
+				{ ok: false, error: "GitHub issue reporter is not configured." },
+				{ status: 500 },
+			);
+		}
+
+		const body = (await request.json()) as Partial<IssueReporterRequest>;
+		const type = body.type;
+		const text = body.text?.trim();
+		if (!type || !ISSUE_TYPES.has(type) || !text || !body.url) {
+			return Response.json(
+				{ ok: false, error: "Missing issue type, text, or URL." },
+				{ status: 400 },
+			);
+		}
+
+		const issueBody = [
+			text,
+			"",
+			"---",
+			`URL: ${body.url}`,
+			`User: ${formatIssueReporterUser(body.user)}`,
+		].join("\n");
+
+		const response = await fetch(
+			`https://api.github.com/repos/${owner}/${repo}/issues`,
+			{
+				method: "POST",
+				headers: {
+					Accept: "application/vnd.github+json",
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+					"X-GitHub-Api-Version": "2022-11-28",
+				},
+				body: JSON.stringify({
+					title: `[${type}] ${text.slice(0, 80)}`,
+					body: issueBody,
+					labels: [type],
+				}),
+			},
+		);
+
+		if (!response.ok) {
+			return Response.json(
+				{ ok: false, error: "GitHub issue creation failed." },
+				{ status: response.status },
+			);
+		}
+
+		const issue = (await response.json()) as { html_url?: string };
+		return Response.json({ ok: true, issueUrl: issue.html_url ?? "" });
+	},
+});
+
+function formatIssueReporterUser(user: IssueReporterRequest["user"]) {
+	if (!user) return "anonymous";
+	return [user.name, user.email, user.id].filter(Boolean).join(" / ") || "anonymous";
+}
+```
+
+**Modal.** Add a small React component using the app's existing design system
+and state patterns. It must have:
+
+- a visible trigger somewhere natural in the app shell or help menu
+- a keyboard shortcut (prefer `?` or `Ctrl+Shift+I` unless the app already
+  reserves one of those)
+- a type dropdown for `bug`, `enhancement`, `docs`, and `question`
+- a textbox for the report
+- success and failure states, including a link to the created issue when the
+  route returns one
+
+The modal submits to the server route with the current window location and the
+logged-in user identity when the app can access it. Do not require login just
+to report an issue; anonymous reports are allowed if the app has no current
+user.
+
+Client call shape:
+
+```ts
+const response = await fetch("/api/github/issues", {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({
+		type,
+		text,
+		url: window.location.href,
+		user: currentUser
+			? {
+					id: currentUser.id,
+					email: currentUser.primaryEmailAddress?.emailAddress,
+					name: currentUser.fullName,
+				}
+			: undefined,
+	}),
+});
+
+const result = (await response.json()) as IssueReporterResponse;
+```
+
+**Configuration.** Add these names to `.env.example` (names only, no values)
+and the app's typed env schema if it has one:
+
+```dotenv
+GITHUB_ISSUES_TOKEN=
+GITHUB_REPOSITORY_OWNER=
+GITHUB_REPOSITORY_NAME=
+```
+
+`GITHUB_ISSUES_TOKEN` must be a fine-grained GitHub token with only the
+minimum repository permissions needed to create issues. Store it as a
+server-side runtime secret for each deployed environment; never expose it with
+a `VITE_` prefix or send it to the browser.
+
+**Verification.** Add or update app-local tests for the route's input
+validation and for the modal payload construction. Manual smoke test: open the
+modal, file a test issue from a non-production environment, confirm the GitHub
+issue contains the report text, current URL, and logged-in user identity when
+available, then close/delete the test issue if it was only a smoke-test
+artifact.
+
+### 10. Claude Code preview config (`.claude/launch.json`)
 
 This app needs **two** processes running for full functionality — Convex backend + Vite frontend — so Claude Code's preview tooling (`preview_start`) needs a launch config that starts both, not just Vite. Ensure `.claude/launch.json` exists:
 
@@ -368,7 +540,7 @@ This app needs **two** processes running for full functionality — Convex backe
 - `.claude/launch.json` is shared dev tooling, not a secret — confirm `.gitignore` excludes only `.claude/settings.local.json` and `CLAUDE.local.md`, not the whole `.claude/` directory or this file.
 - **Logging in during a preview:** if the app uses `@appelent/auth` (step 7), its sign-in screen shows a "▶ Dev: log in as test user" button whenever `VITE_CLERK_PUBLISHABLE_KEY` is a Clerk **test** key (`pk_test_...`, never `pk_live_...` — so it's structurally impossible on production) *and* both `VITE_TEST_USER_EMAIL`/`VITE_TEST_USER_PASSWORD` are set. This is how Claude should authenticate when verifying a feature behind the login wall on the dev server or a non-prod preview (step 8) — don't assume a real Clerk login is required or that auth-gated pages are unreachable for automated verification. If the button isn't showing, check `.env.local` (or the relevant preview's env) for those two vars before concluding the app can't be tested logged-in.
 
-### 10. Claude Code workflow layer (committed)
+### 11. Claude Code workflow layer (committed)
 
 Stamp the reusable Claude Code workflow onto the repo so it reaches **web sessions and
 Codex**, not just this desk. Everything here is committed (`.claude/`, `.github/`,
@@ -509,7 +681,7 @@ never raw `tsc`/`vitest`/`biome` — no per-project detection.
   guess it). Auth note goes in verbatim (it's the same across the fleet): the sign-in
   screen's "▶ Dev: log in as test user" button comes from `@appelent/auth`'s
   `TestLoginButton` and appears only when `VITE_CLERK_PUBLISHABLE_KEY` is a `pk_test_...`
-  key **and** `VITE_TEST_USER_EMAIL`/`VITE_TEST_USER_PASSWORD` are set (step 9) — if it's
+  key **and** `VITE_TEST_USER_EMAIL`/`VITE_TEST_USER_PASSWORD` are set (step 10) — if it's
   missing, check `.env.local` before concluding the app can't be tested logged-in.
   Local-first; on web, verification falls back to the static suite.
 
@@ -546,9 +718,9 @@ For the current repo:
 
 1. **Write or update `appelent.json` at the app root.** Its shape is
    `{ "features": { "<name>": { "version": <int>, "options": { ... } } } }`.
-   Ensure `features.baseline = { "version": 1 }`, plus an entry for every other
+   Ensure `features.baseline = { "version": 2 }`, plus an entry for every other
    feature applied during this bootstrap pass — e.g. `auth` if the app uses
-   `@appelent/auth`, `cli` if it ships a CLI (step 7), `i18n` if step 12 ran.
+   `@appelent/auth`, `cli` if it ships a CLI (step 7), `i18n` if step 13 ran.
    Merge, don't clobber — leave existing feature entries and their `options`
    alone. Commit `appelent.json` together with the wiring it records.
 2. **Stamp the managed block** in the app's `CLAUDE.md` and `AGENTS.md` using
@@ -566,20 +738,20 @@ For the current repo:
    they match the plugin copy; the plugin is now the source of truth. Leave
    `.claude/skills/verify` in place because it is project-specific.
 
-### 11. Wrap up
+### 12. Wrap up
 
 - Run `typecheck`, `lint` (and `check`) to confirm the baseline is clean.
-- **Commit as you go, one commit per step** — bootstrap touches a lot of unrelated files across steps 1–10 (package manager, supply-chain hardening, scripts, Convex env, wrangler config, editor/Biome hygiene, `@appelent` wiring, preview workflow, `.claude/launch.json`, Claude Code workflow layer). After finishing and verifying each step that changed files, create a focused commit for just that step's changes before moving on, rather than batching everything into one commit at the end. Use a short conventional message describing that step's concern (e.g. `chore: migrate to pnpm`, `chore: add supply-chain hardening settings`, `chore: add wrangler dev environment`). Skip the commit if a step made no changes. Never batch multiple unrelated steps into one commit.
-- Print a short summary: package manager status (migrated or already pnpm), supply-chain hardening status, scripts added, Convex vars set (keys only), deploy target + dev env configured, hygiene files added, `@appelent` package/registry status, preview workflow + secrets status, `.claude/launch.json` status, Claude Code workflow-layer status (hook / settings / CI / commands / plugin workflow skills / verify skill / `AGENTS.md`), and the list of commits created.
+- **Commit as you go, one commit per step** — bootstrap touches a lot of unrelated files across steps 1–11 (package manager, supply-chain hardening, scripts, Convex env, wrangler config, editor/Biome hygiene, `@appelent` wiring, preview workflow, GitHub issue reporter, `.claude/launch.json`, Claude Code workflow layer). After finishing and verifying each step that changed files, create a focused commit for just that step's changes before moving on, rather than batching everything into one commit at the end. Use a short conventional message describing that step's concern (e.g. `chore: migrate to pnpm`, `chore: add supply-chain hardening settings`, `chore: add wrangler dev environment`). Skip the commit if a step made no changes. Never batch multiple unrelated steps into one commit.
+- Print a short summary: package manager status (migrated or already pnpm), supply-chain hardening status, scripts added, Convex vars set (keys only), deploy target + dev env configured, hygiene files added, `@appelent` package/registry status, preview workflow + secrets status, GitHub issue reporter route/modal/env status, `.claude/launch.json` status, Claude Code workflow-layer status (hook / settings / CI / commands / plugin workflow skills / verify skill / `AGENTS.md`), and the list of commits created.
 - Appelent feature record status: `appelent.json` written/updated with `baseline` (and any other applied features), managed `CLAUDE.md`/`AGENTS.md` blocks stamped, and any retired `.claude/appelent` mirror removed.
 - **Once everything above is applied and verified, refresh the project's `CLAUDE.md`** (use the `init` skill) so it reflects the new baseline — new scripts, env vars, deploy targets, `@appelent` packages, preview workflow. Do this even if `CLAUDE.md` already exists; bootstrap changes routinely go undocumented otherwise. Include a short note that `review-app`, `review-session`, and `upgrade-deps` come from the Appelent plugin and should not be copied into `.claude/skills/` by default. `.claude/skills/verify/SKILL.md` is project-specific by design (route→module map) and has no source-of-truth counterpart at all.
 - **Check `README.md` against the same baseline** if one exists. It drifts independently of `CLAUDE.md` and routinely lags behind — the recurring offenders are `npm`/`npx` instead of `pnpm` in setup/dev commands, `cp .env.example .env` instead of `.env.local`, no mention of the private `@appelent` registry auth step (breaks a fresh clone's install with no explanation), and Cloudflare Workers/Wrangler deployment not mentioned at all. Update the parts that are stale; don't fabricate new sections it never had.
 - Commit the `CLAUDE.md`/`README.md` refresh as its own final commit, separate from the step commits above.
 
-### 12. Internationalization (i18n) — on request only
+### 13. Internationalization (i18n) — on request only
 
 **Not part of the default baseline** — skip this step unless I explicitly ask
-for multi-language support on this app. Unlike steps 1–11, there's no
+for multi-language support on this app. Unlike steps 1–12, there's no
 "detect and fix drift" pass for i18n: a single-language app isn't missing
 anything by default.
 
@@ -603,7 +775,7 @@ applying the `i18n` feature. The `i18n` feature skill's "String extraction
 recipe" section is written to be copied verbatim into that plan, with a
 project-specific glossary table added alongside it.
 
-If applied, note it in the wrap-up summary (step 11) even though this step
+If applied, note it in the wrap-up summary (step 12) even though this step
 runs after: locales supported, which files were scaffolded, and how many
 feature areas were extracted (all vs. partial — a large app may localize UI
 chrome first and content in a follow-up phase).

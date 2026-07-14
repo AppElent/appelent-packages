@@ -139,3 +139,26 @@ test("baseline treats plugin workflow skills as primary, not copied project defa
 	assert.match(project, /fallback-only/);
 	assert.doesNotMatch(readme, /meant to be copied into an app/);
 });
+
+test("baseline includes an app-local GitHub issue reporter scaffold", () => {
+	const root = process.cwd();
+	const feature = readFileSync(
+		join(root, "skills", "baseline", "FEATURE.md"),
+		"utf8",
+	);
+	const skill = readFileSync(
+		join(root, "skills", "baseline", "SKILL.md"),
+		"utf8",
+	);
+
+	assert.match(feature, /^version: 2$/m);
+	assert.match(feature, /GitHub issue reporter/);
+	assert.match(skill, /\/api\/github\/issues/);
+	assert.match(skill, /GITHUB_ISSUES_TOKEN/);
+	assert.match(skill, /window\.location\.href/);
+	assert.match(skill, /logged-in user identity/);
+	assert.match(skill, /Request shape/);
+	assert.match(skill, /Response shape/);
+	assert.match(skill, /fetch\("\/api\/github\/issues"/);
+	assert.match(skill, /No model call is part of v1/);
+});
