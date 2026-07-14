@@ -35,6 +35,15 @@ Before starting, check (use `node -e "...existsSync..."` instead of `ls ... 2>/d
 - Whether an app-local GitHub issue reporter already exists: search for
   `/api/github/issues`, `GITHUB_ISSUES_TOKEN`, and any issue-report modal or
   keyboard shortcut before adding another one.
+- Whether the mobile-zoom fix already exists: grep the app's global CSS for
+  `-webkit-touch-callout`.
+- Whether the app already has PWA wiring, and how complete it is: check
+  `package.json` for `vite-plugin-pwa`, look for a `manifest.webmanifest` (or
+  an older ad-hoc `manifest.json`) actually linked from the root route's
+  `head()`, and search for a service-worker registration call
+  (`virtual:pwa-register`, `navigator.serviceWorker.register`). A linked
+  manifest with no service worker registration is **partial**, not done —
+  don't treat it as already applied.
 
 ## Task
 
@@ -725,7 +734,7 @@ For the current repo:
 
 1. **Write or update `appelent.json` at the app root.** Its shape is
    `{ "features": { "<name>": { "version": <int>, "options": { ... } } } }`.
-   Ensure `features.baseline = { "version": 3 }`, plus an entry for every other
+   Ensure `features.baseline = { "version": 4 }`, plus an entry for every other
    feature applied during this bootstrap pass — e.g. `auth` if the app uses
    `@appelent/auth`, `cli` if it ships a CLI (step 7), `i18n` if step 13 ran.
    Merge, don't clobber — leave existing feature entries and their `options`
@@ -753,8 +762,8 @@ For the current repo:
 ### 12. Wrap up
 
 - Run `typecheck`, `lint` (and `check`) to confirm the baseline is clean.
-- **Commit as you go, one commit per step** — bootstrap touches a lot of unrelated files across steps 1–11 (package manager, supply-chain hardening, scripts, Convex env, wrangler config, editor/Biome hygiene, `@appelent` wiring, preview workflow, GitHub issue reporter, `.claude/launch.json`, Claude Code workflow layer). After finishing and verifying each step that changed files, create a focused commit for just that step's changes before moving on, rather than batching everything into one commit at the end. Use a short conventional message describing that step's concern (e.g. `chore: migrate to pnpm`, `chore: add supply-chain hardening settings`, `chore: add wrangler dev environment`). Skip the commit if a step made no changes. Never batch multiple unrelated steps into one commit.
-- Print a short summary: package manager status (migrated or already pnpm), supply-chain hardening status, scripts added, Convex vars set (keys only), deploy target + dev env configured, hygiene files added, `@appelent` package/registry status, preview workflow + secrets status, GitHub issue reporter route/modal/env status, `.claude/launch.json` status, Claude Code workflow-layer status (hook / settings / CI / commands / plugin workflow skills / verify skill / `AGENTS.md`), and the list of commits created.
+- **Commit as you go, one commit per step** — bootstrap touches a lot of unrelated files across steps 1–11 and 14–15 (package manager, supply-chain hardening, scripts, Convex env, wrangler config, editor/Biome hygiene, `@appelent` wiring, preview workflow, GitHub issue reporter, `.claude/launch.json`, Claude Code workflow layer, mobile-zoom CSS fix, PWA setup). After finishing and verifying each step that changed files, create a focused commit for just that step's changes before moving on, rather than batching everything into one commit at the end. Use a short conventional message describing that step's concern (e.g. `chore: migrate to pnpm`, `chore: add supply-chain hardening settings`, `chore: add wrangler dev environment`, `fix: prevent iOS input-focus zoom`, `feat: add PWA support`). Skip the commit if a step made no changes. Never batch multiple unrelated steps into one commit.
+- Print a short summary: package manager status (migrated or already pnpm), supply-chain hardening status, scripts added, Convex vars set (keys only), deploy target + dev env configured, hygiene files added, `@appelent` package/registry status, preview workflow + secrets status, GitHub issue reporter route/modal/env status, `.claude/launch.json` status, Claude Code workflow-layer status (hook / settings / CI / commands / plugin workflow skills / verify skill / `AGENTS.md`), mobile-zoom CSS fix status, PWA status (manifest/icons/service worker), and the list of commits created.
 - Appelent feature record status: `appelent.json` written/updated with `baseline` (and any other applied features), managed `CLAUDE.md`/`AGENTS.md` blocks stamped, and any retired `.claude/appelent` mirror removed.
 - **Once everything above is applied and verified, refresh the project's `CLAUDE.md`** (use the `init` skill) so it reflects the new baseline — new scripts, env vars, deploy targets, `@appelent` packages, preview workflow. Do this even if `CLAUDE.md` already exists; bootstrap changes routinely go undocumented otherwise. Include a short note that `review-app`, `review-session`, and `upgrade-deps` come from the Appelent plugin and should not be copied into `.claude/skills/` by default. `.claude/skills/verify/SKILL.md` is project-specific by design (route→module map) and has no source-of-truth counterpart at all.
 - **Check `README.md` against the same baseline** if one exists. It drifts independently of `CLAUDE.md` and routinely lags behind — the recurring offenders are `npm`/`npx` instead of `pnpm` in setup/dev commands, `cp .env.example .env` instead of `.env.local`, no mention of the private `@appelent` registry auth step (breaks a fresh clone's install with no explanation), and Cloudflare Workers/Wrangler deployment not mentioned at all. Update the parts that are stale; don't fabricate new sections it never had.
@@ -791,6 +800,107 @@ If applied, note it in the wrap-up summary (step 12) even though this step
 runs after: locales supported, which files were scaffolded, and how many
 feature areas were extracted (all vs. partial — a large app may localize UI
 chrome first and content in a follow-up phase).
+
+### 14. Mobile viewport (prevent input-focus zoom)
+
+iOS Safari zooms the whole page in when a focused text input has
+`font-size` under 16px — jarring on these mobile-first apps. Fix it with
+CSS, not the viewport meta tag.
+
+Locate the app's global CSS entry point (commonly `src/styles.css`,
+imported as `import appCss from "../styles.css?url"` and wired into the
+root route's `head().links` as `{ rel: "stylesheet", href: appCss }` —
+confirm the actual filename per app rather than assuming). Add this rule if
+it's not already there (idempotent — grep for `-webkit-touch-callout`
+first):
+
+```css
+/* Prevent iOS Safari from auto-zooming on input focus (triggers when font-size < 16px) */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+```
+
+Scoping it behind `@supports (-webkit-touch-callout: none)` (an iOS-Safari-only
+feature-detection hack) means it only affects iOS, not other platforms.
+
+**Do not** "fix" this by setting `maximum-scale=1, user-scalable=no` on the
+viewport meta tag instead — that's an accessibility anti-pattern that blocks
+pinch-zoom for low-vision users. Leave the viewport meta tag at the standard
+`width=device-width, initial-scale=1`; this step doesn't touch it.
+
+### 15. Progressive Web App (PWA)
+
+Make the app installable with an auto-updating service worker. TanStack
+Start has no static `index.html`, so `vite-plugin-pwa`'s default
+HTML-injection mode doesn't apply — wire it manually instead.
+
+**Precache the static app shell only — never Convex/API traffic.** These
+apps depend on Convex's real-time websocket sync for live data; a service
+worker caching API responses would serve stale data and fight that sync.
+The service worker's only job is fast reload + installability, not offline
+data access.
+
+1. **Install & configure.** Add `vite-plugin-pwa` as a devDependency. In
+   `vite.config.ts`, add it alongside the existing plugins:
+
+   ```ts
+   import { VitePWA } from "vite-plugin-pwa";
+
+   VitePWA({
+     registerType: "autoUpdate",
+     injectRegister: false, // no static index.html — TanStack Start is SSR
+     manifest: {
+       name: "<App Name>",
+       short_name: "<Short Name>",
+       description: "<one-line description>",
+       theme_color: "<app theme color>",
+       background_color: "<app background color>",
+       display: "standalone",
+       start_url: "/",
+       icons: [
+         { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
+         { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },
+         { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+       ],
+     },
+     workbox: {
+       globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+       navigateFallbackDenylist: [/^\/api\//, /^\/convex\//],
+     },
+   })
+   ```
+
+2. **Icons.** Check `public/` for an existing source logo first (a prior
+   ad-hoc PWA attempt sometimes left one, e.g. an unused `logo512.png`). If a
+   source image ≥512px exists, generate the full icon set (192, 512, maskable
+   512, apple-touch-icon 180x180) with `@vite-pwa/assets-generator`. If none
+   exists, flag it and ask — don't fabricate a placeholder icon.
+
+3. **Wire the root route** (`src/routes/__root.tsx`, matching its existing
+   `head()` `meta`/`links` shape):
+   - Add `{ rel: "manifest", href: "/manifest.webmanifest" }` to `links`. If
+     an older ad-hoc `{ rel: "manifest", href: "/manifest.json" }` is already
+     there, replace it — `vite-plugin-pwa` generates its own.
+   - Add a `theme-color` meta entry, plus `apple-mobile-web-app-capable` and
+     `apple-mobile-web-app-status-bar-style` for iOS home-screen behavior.
+   - Add an `apple-touch-icon` link (180x180) alongside the existing icon
+     link.
+   - Register the service worker **client-side only, never during SSR**: a
+     small effect that dynamically imports `virtual:pwa-register` and calls
+     the returned update function, guarded so it only runs in the browser —
+     mirror however the app already isolates client-only providers (e.g. the
+     Clerk/Convex provider wiring in the root component).
+
+4. **Verify.** `pnpm build`, serve the built client output (or `wrangler
+   dev` against it), open Chrome DevTools → Application → Manifest/Service
+   Workers, confirm the app shows as installable and the service worker
+   activates. Confirm no Convex/API request appears under the service
+   worker's cache storage.
 
 ## Persistence
 
