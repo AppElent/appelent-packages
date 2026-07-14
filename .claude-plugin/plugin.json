@@ -1,7 +1,7 @@
 {
   "name": "appelent",
   "description": "Appelent feature catalog: shared design decisions (auth, cli, i18n, mcp, baseline) as applyable skills backed by @appelent/* packages",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": {
     "name": "AppElent"
   },
