@@ -87,6 +87,11 @@ function Set-ObjectProperty($Object, $Name, $Value) {
     }
 }
 
+function Write-Utf8NoBom($Path, $Value) {
+    $encoding = [System.Text.UTF8Encoding]::new($false)
+    [System.IO.File]::WriteAllText($Path, $Value, $encoding)
+}
+
 function Ensure-MarketplaceEntry {
     $marketplaceDir = Split-Path -Parent $marketplacePath
     New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
@@ -130,7 +135,7 @@ function Ensure-MarketplaceEntry {
     $plugins += $entry
     Set-ObjectProperty $marketplace "plugins" $plugins
 
-    $marketplace | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $marketplacePath -Encoding UTF8
+    Write-Utf8NoBom $marketplacePath (($marketplace | ConvertTo-Json -Depth 10) + [Environment]::NewLine)
     Write-Host "marketplace: $marketplacePath"
 }
 
