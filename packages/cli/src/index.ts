@@ -7,6 +7,8 @@ export {
 	requireCredential,
 	saveToken,
 } from "./auth";
+export type { BrowserLoginOptions } from "./callbackServer";
+export { startBrowserLogin } from "./callbackServer";
 export type { CliConfig, ConfigRuntime, Credential } from "./config";
 export {
 	clearCredential,

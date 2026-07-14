@@ -13,6 +13,12 @@ pnpm --filter @appelent/auth build
 pnpm --filter @appelent/auth publish --no-git-checks
 ```
 
+CLI shortcut:
+```bash
+pnpm publish:cli
+```
+This builds `@appelent/cli` before publishing it.
+
 ## Consume from an app
 - Add `.npmrc` with `@appelent:registry=https://npm.pkg.github.com` and the
   `read:packages` token via `${NODE_AUTH_TOKEN}`.
