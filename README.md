@@ -34,14 +34,26 @@ local Directory source — that copies `node_modules` and fails on Windows.
 - **Local dev on this machine:** `claude --plugin-dir "D:\Dev\appelent-packages"`
   loads the plugin in place with no copy; edits apply on restart.
 - **Update:** `claude plugin update appelent`.
-- **Claude Code web:** `.claude/settings.json` in this repo declares and
-  enables the plugin, so opening this repo (or any repo that carries the
-  same `.claude/settings.json`) on [claude.ai/code](https://claude.ai/code)
-  loads it automatically — no manual install step. `apply baseline`,
-  `capture`, and `status --all` still need a writable local checkout of
-  this catalog repo (web sessions only check out the current repo); set
-  `$APPELENT_CATALOG_PATH` if it isn't at the default
-  `D:\Dev\appelent-packages`, or skip those steps on web.
+- **Claude Code web:** `.claude/settings.json` in this repo declares the
+  plugin via `enabledPlugins`/`extraKnownMarketplaces`, and the web UI does
+  show it as installed — but in testing, that alone doesn't register the
+  plugin's commands/skills (undocumented gap, not just a config mistake).
+  The confirmed fix: open **claude.ai/code → this repo → Configure cloud
+  environment**, and add a **Setup script**:
+  ```bash
+  #!/bin/bash
+  claude plugin marketplace add AppElent/appelent-packages
+  claude plugin install appelent@appelent
+  ```
+  This is a per-user, per-environment setting — it lives in your own cloud
+  environment config, not in the repo, so every collaborator using web
+  needs to paste it into their own environment settings once. `.claude/settings.json`
+  is left in place too (harmless, and may start working outright once
+  Anthropic closes this gap). `apply baseline`, `capture`, and `status --all`
+  still need a writable local checkout of this catalog repo (web sessions
+  only check out the current repo); set `$APPELENT_CATALOG_PATH` if it
+  isn't at the default `D:\Dev\appelent-packages`, or skip those steps on
+  web.
 
 ## Install (Codex)
 
