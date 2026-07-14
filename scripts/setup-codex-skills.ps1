@@ -1,7 +1,7 @@
 # Links every skill folder in this repo's skills/ (the feature folders plus
-# the appelent-catalog front door) into ~/.codex/skills as a directory
-# junction, so Codex discovers the same Agent Skills files Claude Code gets
-# via the plugin. Re-run after adding a feature.
+# the appelent-feature/appelent-project front doors and review-app/review-session)
+# into ~/.codex/skills as a directory junction, so Codex discovers the same
+# Agent Skills files Claude Code gets via the plugin. Re-run after adding a feature.
 $ErrorActionPreference = "Stop"
 
 $repoSkills = Join-Path $PSScriptRoot "..\skills" | Resolve-Path

@@ -6,11 +6,11 @@ import { test } from "node:test";
 import { validateCatalog } from "../scripts/validate-catalog.mjs";
 
 function makeRepo() {
-	const root = mkdtempSync(join(tmpdir(), "appelent-catalog-"));
-	mkdirSync(join(root, "skills", "appelent-catalog"), { recursive: true });
+	const root = mkdtempSync(join(tmpdir(), "appelent-feature-"));
+	mkdirSync(join(root, "skills", "appelent-feature"), { recursive: true });
 	writeFileSync(
-		join(root, "skills", "appelent-catalog", "SKILL.md"),
-		"---\nname: appelent-catalog\ndescription: front door\n---\n# appelent-catalog\n",
+		join(root, "skills", "appelent-feature", "SKILL.md"),
+		"---\nname: appelent-feature\ndescription: front door\n---\n# appelent-feature\n",
 	);
 	return root;
 }
@@ -85,5 +85,20 @@ test("SKILL.md must have name and description frontmatter", () => {
 	const errors = validateCatalog(root);
 	assert.equal(errors.length, 1);
 	assert.match(errors[0], /mcp.*SKILL\.md/);
+	rmSync(root, { recursive: true, force: true });
+});
+
+test("plugin utility skills (appelent-project, review-app, review-session) are excluded from the FEATURE.md contract", () => {
+	const root = makeRepo();
+	writeFeature(root, "mcp");
+	for (const name of ["appelent-project", "review-app", "review-session"]) {
+		const dir = join(root, "skills", name);
+		mkdirSync(dir, { recursive: true });
+		writeFileSync(
+			join(dir, "SKILL.md"),
+			`---\nname: ${name}\ndescription: use when x\n---\n# ${name}\n`,
+		);
+	}
+	assert.deepEqual(validateCatalog(root), []);
 	rmSync(root, { recursive: true, force: true });
 });

@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REQUIRED_SECTIONS = ["What", "Stack", "Architecture", "Configuration", "Changelog"];
+const EXCLUDED = new Set(["appelent-feature", "appelent-project", "review-app", "review-session"]);
 
 function parseFrontmatter(text) {
 	const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -18,7 +19,7 @@ export function validateCatalog(root) {
 	const errors = [];
 	const skillsDir = join(root, "skills");
 	const features = readdirSync(skillsDir, { withFileTypes: true })
-		.filter((e) => e.isDirectory() && e.name !== "appelent-catalog")
+		.filter((e) => e.isDirectory() && !EXCLUDED.has(e.name))
 		.map((e) => e.name);
 
 	for (const name of features) {

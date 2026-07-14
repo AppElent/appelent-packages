@@ -17,6 +17,10 @@ runtime code under `packages/` (published to GitHub Packages as `@appelent/*`).
 | i18n | packaged | `@appelent/i18n` |
 | mcp | documented | — |
 
+`review-app` and `review-session` also ship as plugin skills (for reviewing
+this repo itself) but aren't catalog features — no `FEATURE.md`, so no table
+row.
+
 ## Install (Claude Code)
 
 ```bash
@@ -35,8 +39,9 @@ local Directory source — that copies `node_modules` and fails on Windows.
 
 ## Usage
 
-- Front door: `/appelent list | show <feature> | apply <feature> [options] | capture <topic> | status [--all]`.
-- Onboard a project (new or existing): `/appelent apply baseline`, then add
-  features à la carte.
+- Feature catalog: `/appelent:feature list | show <feature> | apply <feature> [options] | capture <topic>`.
+- Project: `/appelent:project list | status [--all] | suggest <idea> | suggestions | review-app | review-session`.
+- Onboard a project (new or existing): `/appelent:feature apply baseline`, then
+  add features à la carte.
 - Apps record their opted-in features and options in their own `appelent.json`.
 - Contract check for the catalog: `pnpm validate:catalog`.

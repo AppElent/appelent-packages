@@ -493,22 +493,26 @@ never raw `tsc`/`vitest`/`biome` — no per-project detection.
   - `review-session.md` — a thin launcher that gathers branch/`package.json`/`README.md`
     context and invokes the committed `review-session` skill.
 
-- [ ] **(f) Review skills** under `.claude/skills/` — copy the global
-  `~/.claude/skills/custom-review-app` and `custom-review-session` into the repo as
-  `review-app` and `review-session` (new names avoid the duplicate-skill collision while
-  the global copies still exist). The global copies are already pnpm-only and point at
-  `./docs/review-notes/` (the fleet's doc-output convention — no top-level scratch
-  folders), so the only required change in the committed copy is the `name:` frontmatter
-  (drop the `custom-` prefix to match the new dir name) and title heading. Also copy
+- [ ] **(f) Review skills** under `.claude/skills/` — copy the `appelent-packages`
+  plugin's own bundled `skills/review-app` and `skills/review-session` (from this
+  catalog repo checkout, `D:\Dev\appelent-packages`) into the app repo as
+  `.claude/skills/review-app` and `.claude/skills/review-session`. They're already
+  named/pointed correctly (pnpm-only, `./docs/review-notes/` output, no `custom-`
+  prefix to strip) — copy as-is, no edits needed. Also copy
   `~/.claude/commands/custom-review-session.md` to `.claude/commands/review-session.md`,
-  updating the skill name it invokes the same way. If a top-level `review-notes/` exists,
-  `git mv` it to `docs/review-notes/`.
-  **The global `custom-*` copies are the source of truth.** If you ever hand-edit a
-  project-local `review-app`/`review-session`/`upgrade-deps` copy for something that isn't
+  updating the skill name it invokes the same way (this launcher command has no
+  plugin-bundled equivalent, so it still sources from the global `~/.claude/commands/`
+  template). If a top-level `review-notes/` exists, `git mv` it to `docs/review-notes/`.
+  **The plugin's bundled `skills/review-app`/`skills/review-session` are now the source
+  of truth** for those two skills (not the global `~/.claude/skills/custom-review-app`/
+  `custom-review-session`, which may still exist but are superseded). If you ever
+  hand-edit a project-local `review-app`/`review-session` copy for something that isn't
   project-specific (a process fix, not a route/module fact), port that same fix back to
-  the global `~/.claude/skills/custom-*` / `~/.claude/commands/custom-*` file so the next
-  bootstrapped project inherits it too. Project-local and global copies should only ever
-  differ by name/frontmatter — never by content.
+  `appelent-packages/skills/review-app`/`skills/review-session` so the next bootstrapped
+  project inherits it too — same pattern, new source. `upgrade-deps` is unaffected: its
+  project-local copy still traces back to the global `~/.claude/skills/custom-upgrade-deps`
+  as before. Project-local and source copies should only ever differ by name/frontmatter
+  — never by content.
 
 - [ ] **(g) Verify skill stub** `.claude/skills/verify/SKILL.md` — the one thing that
   can't be templated. Stamp the *shape*; leave the route→module map as `TODO` (never
@@ -576,7 +580,7 @@ For the current repo:
 - **Commit as you go, one commit per step** — bootstrap touches a lot of unrelated files across steps 1–10 (package manager, supply-chain hardening, scripts, Convex env, wrangler config, editor/Biome hygiene, `@appelent` wiring, preview workflow, `.claude/launch.json`, Claude Code workflow layer). After finishing and verifying each step that changed files, create a focused commit for just that step's changes before moving on, rather than batching everything into one commit at the end. Use a short conventional message describing that step's concern (e.g. `chore: migrate to pnpm`, `chore: add supply-chain hardening settings`, `chore: add wrangler dev environment`). Skip the commit if a step made no changes. Never batch multiple unrelated steps into one commit.
 - Print a short summary: package manager status (migrated or already pnpm), supply-chain hardening status, scripts added, Convex vars set (keys only), deploy target + dev env configured, hygiene files added, `@appelent` package/registry status, preview workflow + secrets status, `.claude/launch.json` status, Claude Code workflow-layer status (hook / settings / CI / commands / review + verify skills / `AGENTS.md`), and the list of commits created.
 - Appelent feature record status: `appelent.json` written/updated with `baseline` (and any other applied features), managed `CLAUDE.md`/`AGENTS.md` blocks stamped, and any retired `.claude/appelent` mirror removed.
-- **Once everything above is applied and verified, refresh the project's `CLAUDE.md`** (use the `init` skill) so it reflects the new baseline — new scripts, env vars, deploy targets, `@appelent` packages, preview workflow. Do this even if `CLAUDE.md` already exists; bootstrap changes routinely go undocumented otherwise. Include a short note that `.claude/skills/review-app`, `.claude/skills/review-session`, and `.claude/commands/upgrade-deps.md`/`review-session.md` are project-local copies of the global `~/.claude/skills/custom-review-app` / `custom-review-session` / `~/.claude/commands/custom-upgrade-deps.md` / `custom-review-session.md` templates (renamed to avoid the duplicate-skill collision), and that the global copies are the source of truth — a non-project-specific fix made locally should be ported back to the global file, not left to drift. `.claude/skills/verify/SKILL.md` is the one exception: it's project-specific by design (route→module map) and has no global counterpart.
+- **Once everything above is applied and verified, refresh the project's `CLAUDE.md`** (use the `init` skill) so it reflects the new baseline — new scripts, env vars, deploy targets, `@appelent` packages, preview workflow. Do this even if `CLAUDE.md` already exists; bootstrap changes routinely go undocumented otherwise. Include a short note that `.claude/skills/review-app` and `.claude/skills/review-session` are project-local copies of the `appelent-packages` plugin's bundled `skills/review-app`/`skills/review-session` (the plugin's copies are the source of truth for those two), while `.claude/commands/upgrade-deps.md`/`review-session.md` are project-local copies of the global `~/.claude/commands/custom-upgrade-deps.md`/`custom-review-session.md` templates (the global copies remain the source of truth for those, same as `.claude/skills/upgrade-deps` if present) — a non-project-specific fix made locally should be ported back to whichever source copy it traces to, not left to drift. `.claude/skills/verify/SKILL.md` is the one exception: it's project-specific by design (route→module map) and has no source-of-truth counterpart at all.
 - **Check `README.md` against the same baseline** if one exists. It drifts independently of `CLAUDE.md` and routinely lags behind — the recurring offenders are `npm`/`npx` instead of `pnpm` in setup/dev commands, `cp .env.example .env` instead of `.env.local`, no mention of the private `@appelent` registry auth step (breaks a fresh clone's install with no explanation), and Cloudflare Workers/Wrangler deployment not mentioned at all. Update the parts that are stale; don't fabricate new sections it never had.
 - Commit the `CLAUDE.md`/`README.md` refresh as its own final commit, separate from the step commits above.
 
