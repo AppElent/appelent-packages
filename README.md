@@ -18,8 +18,9 @@ runtime code under `packages/` (published to GitHub Packages as `@appelent/*`).
 | mcp | documented | — |
 
 `review-app`, `review-session`, and `upgrade-deps` also ship as plugin
-skills (workflow helpers meant to be copied into an app, see `sync-skills`
-below) but aren't catalog features — no `FEATURE.md`, so no table row.
+skills but aren't catalog features — no `FEATURE.md`, so no table row. Use
+the plugin-provided skills directly; copying them into an app is only a
+fallback for environments where the plugin is unavailable.
 
 ## Install (Claude Code)
 

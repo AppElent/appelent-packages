@@ -1,5 +1,11 @@
 import { strict as assert } from "node:assert";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import {
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -91,7 +97,12 @@ test("SKILL.md must have name and description frontmatter", () => {
 test("plugin utility skills (appelent-project, review-app, review-session, upgrade-deps) are excluded from the FEATURE.md contract", () => {
 	const root = makeRepo();
 	writeFeature(root, "mcp");
-	for (const name of ["appelent-project", "review-app", "review-session", "upgrade-deps"]) {
+	for (const name of [
+		"appelent-project",
+		"review-app",
+		"review-session",
+		"upgrade-deps",
+	]) {
 		const dir = join(root, "skills", name);
 		mkdirSync(dir, { recursive: true });
 		writeFileSync(
@@ -101,4 +112,30 @@ test("plugin utility skills (appelent-project, review-app, review-session, upgra
 	}
 	assert.deepEqual(validateCatalog(root), []);
 	rmSync(root, { recursive: true, force: true });
+});
+
+test("baseline treats plugin workflow skills as primary, not copied project defaults", () => {
+	const root = process.cwd();
+	const baseline = readFileSync(
+		join(root, "skills", "baseline", "SKILL.md"),
+		"utf8",
+	);
+	const project = readFileSync(
+		join(root, "skills", "appelent-project", "SKILL.md"),
+		"utf8",
+	);
+	const readme = readFileSync(join(root, "README.md"), "utf8");
+
+	assert.doesNotMatch(
+		baseline,
+		/sync-skills review-app review-session upgrade-deps/,
+	);
+	assert.doesNotMatch(baseline, /project-local copies/);
+	assert.doesNotMatch(baseline, /\.claude\/skills\/upgrade-deps\/SKILL\.md/);
+	assert.match(
+		baseline,
+		/Use the plugin-provided `review-app`,\s+`review-session`, and `upgrade-deps`\s+skills directly/,
+	);
+	assert.match(project, /fallback-only/);
+	assert.doesNotMatch(readme, /meant to be copied into an app/);
 });

@@ -1,6 +1,6 @@
 ---
 name: appelent-project
-description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), note an improvement idea for later (suggest), pick one back up for full brainstorming (suggestions), or triage-and-implement one or more suggestions directly (fix) — all three are also reachable via /appelent:feature — run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or copy plugin skill folders into this app (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
+description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), note an improvement idea for later (suggest), pick one back up for full brainstorming (suggestions), or triage-and-implement one or more suggestions directly (fix) — all three are also reachable via /appelent:feature — run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or make fallback-only plain-markdown skill copies (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
 ---
 
 # appelent-project
@@ -17,8 +17,9 @@ Subcommands (also reachable by natural language):
 
 For `help`, or when invoked with no/unrecognized arguments: explain the
 subcommands below in one line each, including `upgrade-deps` (safely
-upgrade this app's dependencies) and `sync-skills <name>...` (copy plugin
-skill folders into this app's `.claude/skills/`). Mention that
+upgrade this app's dependencies) and `sync-skills <name>...`
+(fallback-only plain-markdown copies for environments without the plugin).
+Mention that
 `/appelent:feature` covers catalog-side operations (list available
 features, show, apply, capture) and also exposes `suggest`/`suggestions`/
 `fix` as alternate entry points to the same braindump mechanism.
@@ -166,14 +167,18 @@ just a discoverable entry point alongside natural-language triggers like
 
 ## sync-skills <name> [name...]
 
-Copy one or more of the plugin's own skill folders verbatim into this
-app's `.claude/skills/<name>/` — `SKILL.md` and any accompanying files
-(e.g. `references/`), unmodified. Resolves `<name>` the same way
-`appelent-feature`'s `show` does (`../<name>/` relative to this skill).
-Works for any sibling skill, catalog features included (auth/cli/i18n/
-mcp) as well as the workflow skills (review-app/review-session/
-upgrade-deps) — this is a raw copy, not `apply <feature>`: no package
-install, wiring, or `appelent.json` recording.
+Fallback-only: copy one or more of the plugin's own skill folders verbatim
+into this app's `.claude/skills/<name>/` — `SKILL.md` and any accompanying
+files (e.g. `references/`), unmodified. Use this only when the Appelent
+plugin is unavailable in the target environment and committed
+plain-markdown skills are still needed. Normal app projects should invoke
+the plugin-provided skills directly.
+
+Resolves `<name>` the same way `appelent-feature`'s `show` does
+(`../<name>/` relative to this skill). Works for any sibling skill, catalog
+features included (auth/cli/i18n/mcp) as well as workflow skills
+(review-app/review-session/upgrade-deps) — this is a raw copy, not `apply
+<feature>`: no package install, wiring, or `appelent.json` recording.
 
 1. No arguments: list the plugin's skill folders except
    `appelent-feature`/`appelent-project` (copying the front doors into an
