@@ -47,15 +47,36 @@ function closeServer(server: Server) {
 	server.close(() => undefined);
 }
 
-function defaultOpenBrowser(url: string): void {
-	const command =
-		platform === "win32" ? "cmd" : platform === "darwin" ? "open" : "xdg-open";
-	const args = platform === "win32" ? ["/c", "start", "", url] : [url];
-	const child = spawn(command, args, {
-		detached: true,
-		stdio: "ignore",
+function defaultOpenBrowser(url: string): Promise<void> {
+	return new Promise((resolve, reject) => {
+		// rundll32 opens the URL directly via the OS URL handler, unlike
+		// `cmd /c start`, which re-parses the URL as a shell command line and
+		// mangles it at the first `&` (every query string with more than one
+		// param) or `%` (percent-encoded octets read as env var expansion).
+		const command =
+			platform === "win32"
+				? "rundll32"
+				: platform === "darwin"
+					? "open"
+					: "xdg-open";
+		const args =
+			platform === "win32" ? ["url.dll,FileProtocolHandler", url] : [url];
+		const child = spawn(command, args, {
+			detached: true,
+			stdio: "ignore",
+		});
+		// spawn() cannot throw synchronously for a missing launcher binary
+		// (e.g. xdg-open on a minimal Linux install) — the failure surfaces
+		// as an async "error" event. Without a listener, Node treats that as
+		// an unhandled error and crashes the process instead of letting the
+		// caller's try/catch fall back to printing the login URL.
+		child.once("error", reject);
+		child.once("spawn", () => {
+			child.off("error", reject);
+			resolve();
+		});
+		child.unref();
 	});
-	child.unref();
 }
 
 export async function startBrowserLogin(runtime: CliRuntime): Promise<void> {
