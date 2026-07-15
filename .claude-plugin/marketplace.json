@@ -1,14 +1,14 @@
 {
-  "name": "appelent",
-  "description": "Marketplace hosting the appelent feature-catalog plugin",
-  "owner": {
-    "name": "AppElent"
-  },
-  "plugins": [
-    {
-      "name": "appelent",
-      "source": "./",
-      "description": "Appelent feature catalog: shared design decisions as applyable skills"
-    }
-  ]
+	"name": "appelent",
+	"description": "Marketplace hosting the appelent feature-catalog plugin",
+	"owner": {
+		"name": "AppElent"
+	},
+	"plugins": [
+		{
+			"name": "appelent",
+			"source": "./",
+			"description": "Appelent feature catalog: shared design decisions as applyable skills"
+		}
+	]
 }

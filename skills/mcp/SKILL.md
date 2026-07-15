@@ -133,3 +133,13 @@ Run the narrowest meaningful checks:
 - build if routing, Worker config, or deployment behavior changed
 
 Document client connection instructions in the app's docs or README.
+
+## Self-improvement
+
+When this skill's work is done, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill* and offer to file it back to the catalog.
+Nothing noteworthy is the normal outcome — say nothing then.
+
+If you got here via `/appelent:feature apply mcp`, that run's own reflection
+(`apply` step 6) already covers this skill — don't reflect twice.

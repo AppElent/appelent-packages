@@ -120,6 +120,9 @@ behavior. Verification is a manual walkthrough:
 - Auto-closing issues or any other unattended GitHub write — unchanged,
   always ask.
 - A local-file backlog — GitHub issues remain the single store.
-- Proactively prompting for issues inside `apply`/other subcommands.
+- ~~Proactively prompting for issues inside `apply`/other subcommands.~~
+  **Superseded** by `2026-07-15-self-improving-skills-design.md`: every skill now
+  ends by reflecting on itself and offering to file what it found, under explicit
+  anti-noise rules.
 - Migrating or bulk-relabeling existing `catalog-suggestion` issues — they
   stay visible via the unfiltered listing.

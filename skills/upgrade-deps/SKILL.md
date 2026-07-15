@@ -38,3 +38,12 @@ the current branch and working-tree state.
 
 Report a concise summary of what was upgraded and the final status of
 each check.
+
+## Self-improvement
+
+Once the upgrade is reported, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill's own instructions* and offer to file it
+back to the catalog. This is not about the packages you upgraded or any breakage
+you fixed along the way; it's about the steps above. Nothing noteworthy is the
+normal outcome — say nothing then.

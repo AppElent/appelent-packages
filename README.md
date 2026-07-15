@@ -76,10 +76,18 @@ Start a new Codex task after installing so plugin skills are loaded.
 - **Fallback without plugin packaging:** `powershell -ExecutionPolicy Bypass -File scripts/setup-codex-skills.ps1`
   junctions the skill folders directly into `~/.codex/skills`.
 
-GitHub is the source of truth for both agents. Plugin changes must bump
-`.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the same
-version in the same commit; `pnpm validate:catalog` checks that they stay in
-sync.
+GitHub is the source of truth for both agents. **Any** change to `skills/` or
+`commands/` must bump `.claude-plugin/plugin.json` and
+`.codex-plugin/plugin.json` to the same version in the same commit — both
+agents serve skills from a version-pinned local cache, so without a bump they
+keep running the old prose and never pick the change up.
+
+`pnpm validate:catalog` enforces this: it fails when files under `skills/` or
+`commands/` changed against the merge-base with `main` but the version didn't.
+It's advisory by design — it skips silently when it can't resolve a base (no
+git, shallow CI clone, detached HEAD), so bump deliberately rather than relying
+on it. Before this check existed the rule was documented but unenforced, and
+0.1.5 shipped four skill changes late as a result.
 
 ## Usage
 

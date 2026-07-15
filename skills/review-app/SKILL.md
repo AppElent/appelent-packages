@@ -173,3 +173,21 @@ Give the GitHub issue URL and a one-line counts recap, then ask:
   done. Do not weaken tests to pass. Commit each item separately once done and
   verified — one commit per action item, not one commit at the end. Offer to
   close the issue only after all items are fixed and verified.
+
+## Self-improvement
+
+Once the review issue exists and step 9 is settled, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill's own instructions* and offer to file it
+back to the catalog.
+
+**These are two different issues in two different repos — do not merge them.**
+Step 8's issue is the review's findings and goes to the **app's** repo. This
+one is about the review procedure itself — an ambiguous step, a browser tool
+that didn't behave as documented, a judgment call the skill left open — and
+goes to the **catalog** repo (`AppElent/appelent-packages`), because that's
+where this skill lives. Never put skill friction in the app's review issue, and
+never put app findings in the catalog.
+
+Nothing noteworthy is the normal outcome — say nothing then. A review that went
+smoothly should end at step 9.

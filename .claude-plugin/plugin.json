@@ -1,10 +1,17 @@
 {
-  "name": "appelent",
-  "description": "Appelent feature catalog: shared design decisions (auth, cli, i18n, mcp, baseline) as applyable skills backed by @appelent/* packages",
-  "version": "0.1.6",
-  "author": {
-    "name": "AppElent"
-  },
-  "repository": "https://github.com/AppElent/appelent-packages",
-  "keywords": ["appelent", "features", "tanstack", "convex", "clerk", "cloudflare"]
+	"name": "appelent",
+	"description": "Appelent feature catalog: shared design decisions (auth, cli, i18n, mcp, baseline) as applyable skills backed by @appelent/* packages",
+	"version": "0.1.7",
+	"author": {
+		"name": "AppElent"
+	},
+	"repository": "https://github.com/AppElent/appelent-packages",
+	"keywords": [
+		"appelent",
+		"features",
+		"tanstack",
+		"convex",
+		"clerk",
+		"cloudflare"
+	]
 }
