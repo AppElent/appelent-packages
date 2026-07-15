@@ -1,6 +1,6 @@
 ---
 name: review-session
-description: Start a live review session — I browse/test the app in the preview, you capture my feedback and write a self-contained, goal-ready action file. Use when I say "let's do a review session", "start reviewing", or similar.
+description: Start a live review session — I browse/test the app in the preview, you capture my feedback and file a self-contained GitHub issue. Use when I say "let's do a review session", "start reviewing", or similar.
 ---
 
 # Review Session
@@ -9,7 +9,11 @@ description: Start a live review session — I browse/test the app in the previe
 
 I'm going to start the app and browse it myself in the in-app preview browser. I'll test pages, click around, and talk out loud as I go. **Your job is to listen and take notes — not to act.**
 
-The notes you produce will be fed back to Claude later as a **goal** to execute autonomously. This is the key constraint: **for every item, you must capture enough context that a fresh Claude session with no memory of this review could find and fix it without asking me anything.** If you don't have that context, get it now (see below).
+The notes you produce will become one GitHub issue that Claude can execute
+autonomously later. This is the key constraint: **for every item, you must
+capture enough context that a fresh Claude session with no memory of this
+review could find and fix it without asking me anything.** If you don't have
+that context, get it now (see below).
 
 Before starting, gather context to ground the session:
 
@@ -33,7 +37,26 @@ Rules for the session:
 
 ## Ending the session
 
-When I say I'm done ("wrap up", "summarize", etc.), write all feedback to `./docs/review-notes/review-YYYY-MM-DD-HHMM.md` (create the folder if needed), structured so it can be dropped straight into Claude's Goals feature:
+When I say I'm done ("wrap up", "summarize", etc.), create a single GitHub
+issue in the current app repo.
+
+Resolve the target repo with:
+
+```bash
+gh repo view --json nameWithOwner -q .nameWithOwner
+```
+
+If the repo cannot be resolved, `gh` is not authenticated, or issues are
+disabled, stop and report the `gh` failure plainly. Never fall back to the
+catalog repo.
+
+Use this issue title:
+
+```text
+Review session: <date/time>
+```
+
+Use this issue body:
 
 ```md
 # Review Session — <date/time>
@@ -77,19 +100,41 @@ Address all action items below. Each item is self-contained: route, file paths, 
 - <anything genuinely unresolved — keep this near-empty; resolve during the session, not here>
 ```
 
-Order items by severity within each section. Use checkboxes. After writing, give me the file path and a one-line count recap — nothing more.
+Order items by severity within each section. Use checkboxes.
 
-Before writing, do a self-check: **would a fresh Claude with only this file be able to complete every item without asking me a question?** If any item fails that test, fill the gap (look up the file, infer the acceptance criterion) before saving.
+Before creating the issue, do a self-check: **would a fresh Claude with only
+this GitHub issue be able to complete every item without asking me a
+question?** If any item fails that test, fill the gap (look up the file,
+infer the acceptance criterion) before filing it.
 
-## After writing the file
+Infer exactly one issue label:
 
-Ask me a single question: **"Want me to fix these now?"** Don't propose fixes, don't start working — just ask, then wait.
+- `bug` if any blocker or major action item is broken behavior, a console
+  error, a network error, or an accessibility failure that blocks the flow.
+- `enhancement` otherwise.
 
-- If I say no (or "later"): stop here. The file stays on disk for whenever I want to pick it up.
-- If I say yes: this session has full review context in its transcript, which is exactly what a compact should preserve before handoff (rather than starting a fresh session that has to re-derive everything from the file alone). Do the following, in order:
-  1. Tell me to run `/compact` on this session so the review context is preserved concisely (I have to trigger this myself — it's not something you can invoke as a tool).
-  2. Once compacted, hand the file to Claude Code's **Goals** feature with a directive to fix everything in it. Give me the exact directive text to use, e.g.:
+Ensure the chosen label exists using the shared Appelent issue convention:
+`gh label list --repo <target repo> --search <label>`; only if absent, create
+it with `gh label create <label> --repo <target repo> --color <color>
+--description "<description>"` where `bug` uses `d73a4a` / "Something isn't
+working" and `enhancement` uses `a2eeef` / "New feature or request".
 
-     > Fix everything in `./docs/review-notes/review-<date>-<time>.md`. Work through the action items in severity order. After each fix, verify it against that item's acceptance criteria and run typecheck, lint, and tests before considering it done — do not weaken tests to pass. Commit each item separately once it's done and verified (one commit per action item, not one commit at the end) so the change history stays reviewable and revertable per item.
+Create the issue:
 
-     Don't start fixing things yourself in this same turn — the point of the compact + Goals handoff is a clean context for the execution work. Just give me the file path and the directive so I can start the Goal.
+```bash
+gh issue create --repo <target repo> --title "<title>" --body "<issue body>" --label <label>
+```
+
+After creating the issue, give me the GitHub issue URL and a one-line count
+recap, then ask a single question: **"Want me to fix this issue now?"** Don't
+propose fixes; just ask, then wait.
+
+- If I say no (or "later"): stop here. The issue stays open for whenever I
+  want to pick it up.
+- If I say yes: use the created issue as the execution source. Work through
+  the action items in severity order; after each fix, verify against that
+  item's acceptance criteria and run typecheck, lint, and tests before
+  considering it done. Do not weaken tests to pass. Commit each item
+  separately once done and verified — one commit per action item, not one
+  commit at the end. Offer to close the issue only after all items are fixed
+  and verified.

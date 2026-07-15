@@ -194,15 +194,18 @@ an alternate entry point to the same steps below (differing only in
 
 Invoke the `review-app` skill against the current app, using any argument
 text as its scope (e.g. `review-app mobile`, `review-app what we just
-built`) exactly as `review-app` itself interprets scope arguments. No
-extra logic here — this subcommand exists purely as a discoverable entry
-point alongside the app's own natural-language triggers for that skill.
+built`) exactly as `review-app` itself interprets scope arguments. The skill
+files one GitHub issue in this app's own repo using the target-repo and label
+conventions above. No extra logic here — this subcommand exists purely as a
+discoverable entry point alongside the app's own natural-language triggers for
+that skill.
 
 ## review-session
 
 Invoke the `review-session` skill against the current app. Same
-pass-through behavior as `review-app`: no extra logic, just a discoverable
-entry point under `/appelent:project`.
+pass-through behavior as `review-app`: it files one GitHub issue in this app's
+own repo, with no extra logic beyond this discoverable entry point under
+`/appelent:project`.
 
 ## upgrade-deps
 

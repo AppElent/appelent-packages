@@ -677,8 +677,9 @@ never raw `tsc`/`vitest`/`biome` — no per-project detection.
   exists and matches the plugin copy, remove it. If one differs, flag the diff
   before deleting; project-specific behavior belongs in the app's docs or the
   `verify` skill, while general process fixes belong back in
-  `appelent-packages/skills/<name>`. If a top-level `review-notes/` exists,
-  `git mv` it to `docs/review-notes/`.
+  `appelent-packages/skills/<name>`. Do not create or relocate review-note
+  markdown folders during baseline; current review workflow skills file GitHub
+  issues instead.
 
   Keep `.claude/commands/review-session.md` only if Claude Code needs a
   project command to launch the plugin skill conveniently; otherwise skip it.
