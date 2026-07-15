@@ -96,6 +96,12 @@ tracks the shape a feature wires into an app; a reflection pointer changes
 nothing that gets applied, so bumping it would falsely report every registered
 project as behind and trigger pointless `--update` passes.
 
+The **plugin** version is a different number and does need bumping — every
+`skills/` change does, or Claude Code and Codex keep serving the cached old
+prose. Don't read "no version bump" above as covering both; that conflation is
+how 0.1.5 shipped four skill changes late. `validate:catalog` now enforces the
+plugin bump (see the README).
+
 ## Error Handling
 
 - **`gh` not authenticated / no network:** report the failure from `gh` plainly,
