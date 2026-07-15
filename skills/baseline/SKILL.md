@@ -192,6 +192,18 @@ Ensure a `wrangler.jsonc` exists in my standard shape. For a TanStack Start app 
   ```ts
   exclude: [...configDefaults.exclude, "**/.claude/**", "**/node_modules_OLD/**", "**/node_modules.*/**"]
   ```
+- Ensure a `.worktreeinclude` file exists at the repo root. The Claude Code
+  desktop app reads this when creating a git worktree and copies any
+  gitignored files matching its patterns into the new worktree, preserving
+  directory structure — without it, a fresh worktree is missing local env
+  files and machine-specific settings, breaking the session until someone
+  notices and copies them by hand. Add if missing:
+  ```
+  .env
+  .env.local
+  .env.*
+  **/.claude/settings.local.json
+  ```
 
 ### 7. Shared `@appelent` packages (private registry)
 

@@ -1,6 +1,6 @@
 ---
 name: baseline
-version: 4
+version: 5
 description: The Appelent project baseline for TanStack Start + Convex + Clerk + Cloudflare Workers apps
 ---
 
@@ -50,6 +50,10 @@ owns stamping the managed block in `CLAUDE.md`/`AGENTS.md` and creating
 
 ## Changelog
 
+- 5 — step 6 (editor/Biome/Claude Code hygiene) ensures a `.worktreeinclude`
+  file exists at the repo root, so the Claude Code desktop app copies
+  gitignored env files and `.claude/settings.local.json` into new git
+  worktrees instead of leaving them missing
 - 4 — baseline adds two default steps: mobile-viewport hygiene (CSS-only
   fix so iOS Safari doesn't zoom in on input focus, step 14) and PWA support
   (installable manifest + auto-updating service worker, step 15). Step 15's
