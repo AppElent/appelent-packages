@@ -78,13 +78,41 @@ list.
    is not described there, STOP: tell the user which options are
    supported and offer to extend FEATURE.md first (in the catalog repo,
    bumping `version` with a Changelog line). Never wire undescribed stacks.
-2. Follow `../<feature>/SKILL.md` to do the wiring in the target app.
-3. Record the result in `appelent.json` at the app root, in the same
+2. **Check for version drift before doing a full audit.** If the app's
+   `appelent.json` already records this feature, compare its recorded
+   `version` against `FEATURE.md`'s current `version`.
+   - Same version → proceed as a normal audit-for-drift pass (this is
+     what "merge, don't clobber, flag deviations" already assumes).
+   - Recorded version is behind → this is `--update` territory even if
+     `--update` wasn't passed explicitly: tell the user which versions you
+     found, read the Changelog entries between recorded and current, and
+     apply those deltas specifically (e.g. "the app is on v1, the catalog
+     is on v3; v2 added X, v3 added Y — applying both") rather than
+     re-running every numbered step from scratch as if this were a fresh
+     bootstrap. Don't silently treat "recorded v1" as if it were the
+     feature's actual current shape.
+   - No recorded version at all → fresh onboarding for this feature;
+     proceed as a full apply.
+3. **The loaded `FEATURE.md`/`SKILL.md` content is this Claude Code
+   install's local plugin cache, which can lag the catalog repo** until
+   the next plugin/marketplace sync (or an explicit `/appelent:project
+   sync-skills`). A stale cache reproduces exactly the symptom in step 2
+   above — a recorded app version that looks behind a `FEATURE.md` that's
+   actually also stale — and can cause redoing work the catalog already
+   shipped. If a version comparison looks suspicious (a `SKILL.md` step
+   references catalog history — a changelog entry, a version number in
+   prose — that the currently-loaded `FEATURE.md` doesn't corroborate), or
+   if the app already has functionality that a "fresh onboarding" read of
+   `SKILL.md` says is missing, re-read the feature's `FEATURE.md`/
+   `SKILL.md` again before proceeding rather than trusting the first read
+   as final — the cache may have refreshed mid-session.
+4. Follow `../<feature>/SKILL.md` to do the wiring in the target app.
+5. Record the result in `appelent.json` at the app root, in the same
    commit as the wiring: `"<feature>": { "version": <FEATURE.md version>,
    "options": { ... } }` (omit `options` if none were chosen). Create the
    file with `{ "features": {} }` shape if missing.
-4. **Reflect on the apply itself, not the app.** While working through
-   steps 1-2, keep a running note of friction with `FEATURE.md`/
+6. **Reflect on the apply itself, not the app.** While working through
+   steps 1-4, keep a running note of friction with `FEATURE.md`/
    `SKILL.md` themselves — a command that didn't work as documented, a
    missing or wrong code example, an ambiguous instruction, an option you
    had to guess at. This is about the skill/docs, not the app code just
