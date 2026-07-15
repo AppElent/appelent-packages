@@ -31,6 +31,30 @@ Resolve it in this order:
    skip these steps there, or do the catalog-repo edit from a separate web
    session opened on the catalog repo itself.
 
+## Editing this catalog: always bump the plugin version
+
+**Any** commit that changes `skills/` or `commands/` in the catalog repo must
+also bump `version` in both `.claude-plugin/plugin.json` and
+`.codex-plugin/plugin.json` — same version, same commit. Patch bump for a
+wording or bugfix change, minor for a new skill or subcommand.
+
+This is not bookkeeping. Claude Code and Codex install the plugin at a
+version and serve skills from a local cache; without a bump they keep
+running the old prose and never see the change. A stale version is exactly
+what produces the cache-lag symptom `apply` step 3 warns about below.
+
+`pnpm validate:catalog` fails if you forget, comparing against the merge-base
+with `main` — but treat that as a safety net, not a guarantee: it skips
+silently when it can't resolve a base (no git, a shallow CI clone, detached
+HEAD). Bump deliberately rather than waiting to be caught. This applies to
+every path that writes to the catalog: `capture`, `fix` when the fix lands in
+the catalog, and `apply` step 1's offer to extend a `FEATURE.md`.
+
+A feature's own `FEATURE.md` `version` is a separate, unrelated number: it
+tracks what that feature wires into an app, and only changes when the
+applied shape does. Bumping the plugin does not imply bumping it, or vice
+versa.
+
 Subcommands (also reachable by natural language):
 
 ## help
@@ -77,7 +101,9 @@ list.
    agents on cloudflare" for mcp) against the Stack section. If an option
    is not described there, STOP: tell the user which options are
    supported and offer to extend FEATURE.md first (in the catalog repo,
-   bumping `version` with a Changelog line). Never wire undescribed stacks.
+   bumping its `version` with a Changelog line, and bumping the plugin
+   version too — see "Editing this catalog" above). Never wire undescribed
+   stacks.
 2. **Check for version drift before doing a full audit.** If the app's
    `appelent.json` already records this feature, compare its recorded
    `version` against `FEATURE.md`'s current `version`.
@@ -207,8 +233,10 @@ what we just built as `<topic>`, ask about anything unclear."
      a Changelog line describing the addition, and update the
      Stack/Architecture/Configuration sections in place so the doc stays a
      coherent description of current state (not an append-only log).
-6. Run `pnpm validate:catalog` in the catalog repo, then commit the
-   `FEATURE.md`/`SKILL.md` changes there.
+6. Bump the plugin version in both manifests (see "Editing this catalog:
+   always bump the plugin version" above), run `pnpm validate:catalog` in
+   the catalog repo, then commit that and the `FEATURE.md`/`SKILL.md`
+   changes together.
 7. **Record it in the app.** Write/update the app's `appelent.json`: new
    mode adds `"<topic>": { "version": 1, "options": {...} }`; extend mode
    bumps the existing entry's `"version"` to match. Create the file with

@@ -1,5 +1,9 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
+const BUMP_TRIGGERS = ["skills/", "commands/"];
+const BASE_REF_CANDIDATES = ["origin/main", "origin/master", "main", "master"];
 
 const SHARED_FIELDS = ["name", "version", "description", "repository"];
 const ALLOWED_CODEX_FIELDS = new Set([
@@ -120,8 +124,78 @@ function validateCodexShape(root, codex, errors) {
 	}
 }
 
+function git(root, args) {
+	return execFileSync("git", args, {
+		cwd: root,
+		encoding: "utf8",
+		stdio: ["ignore", "pipe", "ignore"],
+	}).trim();
+}
+
+// Both agents serve skills from a version-pinned cache, so a skills/ change
+// that ships without a version bump never reaches them. Nothing else catches
+// this: the manifest checks above only compare the two files to each other, so
+// they pass green either way — which is how 0.1.5 shipped four skill changes
+// late.
+//
+// Deliberately advisory: if the base can't be resolved (no git, no main/master,
+// shallow CI clone, detached HEAD), skip rather than fail. A check that blocks
+// on an unrelated environment quirk gets disabled, and then it protects nothing.
+export function validateVersionBump(root) {
+	let base;
+	try {
+		const ref = BASE_REF_CANDIDATES.find((candidate) => {
+			try {
+				git(root, ["rev-parse", "--verify", "--quiet", candidate]);
+				return true;
+			} catch {
+				return false;
+			}
+		});
+		if (!ref) return [];
+		base = git(root, ["merge-base", ref, "HEAD"]);
+	} catch {
+		return [];
+	}
+
+	let touched;
+	try {
+		// Diff base against the working tree, not HEAD: capture/fix run
+		// validate:catalog before committing, so the change is still unstaged.
+		touched = git(root, ["diff", "--name-only", base, "--"])
+			.split("\n")
+			.filter((file) => BUMP_TRIGGERS.some((dir) => file.startsWith(dir)));
+	} catch {
+		return [];
+	}
+	if (touched.length === 0) return [];
+
+	let baseVersion;
+	try {
+		baseVersion = JSON.parse(
+			git(root, ["show", `${base}:.claude-plugin/plugin.json`]),
+		).version;
+	} catch {
+		return [];
+	}
+
+	const manifest = join(root, ".claude-plugin", "plugin.json");
+	if (!existsSync(manifest)) return [];
+	let currentVersion;
+	try {
+		currentVersion = JSON.parse(readFileSync(manifest, "utf8")).version;
+	} catch {
+		return [];
+	}
+
+	if (baseVersion !== currentVersion) return [];
+	return [
+		`version still "${currentVersion}" but ${touched.length} file(s) under skills/ or commands/ changed since ${base.slice(0, 7)} (e.g. ${touched[0]}) — bump both plugin manifests, or Claude Code and Codex will keep serving the cached old skills`,
+	];
+}
+
 export function validatePluginManifests(root) {
-	const errors = [];
+	const errors = validateVersionBump(root);
 	const claude = readJson(
 		join(root, ".claude-plugin", "plugin.json"),
 		".claude-plugin/plugin.json",

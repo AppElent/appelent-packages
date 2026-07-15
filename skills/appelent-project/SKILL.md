@@ -182,9 +182,12 @@ an alternate entry point to the same steps below (differing only in
 5. **`just go`** — implement the sketched solution directly in the
    repo/location identified in step 2, following the normal skills that
    would apply to that kind of change anyway (e.g. `test-driven-development`
-   for app code, `pnpm validate:catalog` for catalog edits). No
-   brainstorming/writing-plans ceremony. Once it's done and verified,
-   offer to close the issue — never close it without asking.
+   for app code, `pnpm validate:catalog` for catalog edits). If the fix
+   lands in the catalog's `skills/` or `commands/`, bump the plugin version
+   in the same commit — see "Editing this catalog: always bump the plugin
+   version" in `../appelent-feature/SKILL.md`. No brainstorming/writing-plans
+   ceremony. Once it's done and verified, offer to close the issue — never
+   close it without asking.
 6. With multiple issue numbers: work through steps 1-3 for each before
    acting on any of them, so the user sees every proposal up front and can
    route each one (`brainstorm/plan` vs `just go` vs skip) independently,
