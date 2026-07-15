@@ -65,6 +65,15 @@ wrapper stays healthy:
 The workflow should install with the normal GitHub Packages auth step, set
 `<APPNAME>_CONFIG_DIR` to a temporary directory, and run `pnpm cli:smoke`.
 
+Set `<APPNAME>_CONFIG_DIR` as a **step-level** `env:` (on the `pnpm cli:smoke`
+step itself), not a job-level `env:`, if the value references
+`${{ runner.temp }}`. GitHub Actions' `runner` context is only valid in
+step-level fields (`steps.env`, `steps.if`, `steps.run`, etc.) — using it in
+`jobs.<job_id>.env` makes the whole workflow file invalid, so every run shows
+zero jobs and the workflow's registered name silently falls back to its file
+path. (`workouts`' `cli.yml` shipped this exact bug — see its fix for the
+before/after shape.)
+
 ### What `appName` controls
 
 Everything app-specific is derived from `appName` — nothing is hardcoded:
