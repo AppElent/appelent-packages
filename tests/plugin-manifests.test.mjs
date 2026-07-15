@@ -180,3 +180,26 @@ test("a non-git directory is skipped rather than failed", () => {
 	assert.deepEqual(validateVersionBump(root), []);
 	rmSync(root, { recursive: true, force: true });
 });
+
+test("a brand-new untracked skill still requires a bump (capture validates before staging)", () => {
+	const { root } = makeGitRepo();
+	mkdirSync(join(root, "skills", "brandnew"), { recursive: true });
+	writeFileSync(join(root, "skills", "brandnew", "SKILL.md"), "# brandnew\n");
+
+	const errors = validateVersionBump(root);
+	assert.equal(errors.length, 1);
+	assert.match(errors[0], /skills\/brandnew\/SKILL\.md/);
+	rmSync(root, { recursive: true, force: true });
+});
+
+test("untracked files respect .gitignore", () => {
+	const { root, run } = makeGitRepo();
+	writeFileSync(join(root, ".gitignore"), "skills/scratch/\n");
+	run(["add", "-A"]);
+	run(["commit", "-m", "ignore scratch"]);
+	mkdirSync(join(root, "skills", "scratch"), { recursive: true });
+	writeFileSync(join(root, "skills", "scratch", "SKILL.md"), "# scratch\n");
+
+	assert.deepEqual(validateVersionBump(root), []);
+	rmSync(root, { recursive: true, force: true });
+});

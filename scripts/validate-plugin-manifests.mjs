@@ -162,9 +162,20 @@ export function validateVersionBump(root) {
 	try {
 		// Diff base against the working tree, not HEAD: capture/fix run
 		// validate:catalog before committing, so the change is still unstaged.
-		touched = git(root, ["diff", "--name-only", base, "--"])
-			.split("\n")
-			.filter((file) => BUMP_TRIGGERS.some((dir) => file.startsWith(dir)));
+		const changed = git(root, ["diff", "--name-only", base, "--"]).split("\n");
+		// git diff never reports untracked files, and capture's new-feature path
+		// creates skills/<topic>/ then validates before staging — the exact case
+		// where a bump matters most. --exclude-standard so ignored scratch files
+		// don't trigger it.
+		const added = git(root, [
+			"ls-files",
+			"--others",
+			"--exclude-standard",
+		]).split("\n");
+		touched = [...new Set([...changed, ...added])]
+			.filter(Boolean)
+			.filter((file) => BUMP_TRIGGERS.some((dir) => file.startsWith(dir)))
+			.sort();
 	} catch {
 		return [];
 	}
