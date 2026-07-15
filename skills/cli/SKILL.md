@@ -48,3 +48,13 @@ publish an app package just to get `pnpm <app>` working. If an app intentionally
 needs an npm-installable app-specific binary later, design that separately: it
 needs a scoped package name, a real compiled JS `bin`, and a focused publish
 workflow.
+
+## Self-improvement
+
+When this skill's work is done, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill* and offer to file it back to the catalog.
+Nothing noteworthy is the normal outcome — say nothing then.
+
+If you got here via `/appelent:feature apply cli`, that run's own reflection
+(`apply` step 6) already covers this skill — don't reflect twice.

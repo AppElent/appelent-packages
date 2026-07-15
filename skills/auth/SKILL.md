@@ -26,3 +26,13 @@ and do not fork package code into the app.
 Compare the app's recorded version against this folder's `FEATURE.md`
 version; apply the Changelog deltas. For package-only changes, a normal
 `pnpm up @appelent/auth` suffices.
+
+## Self-improvement
+
+When this skill's work is done, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill* and offer to file it back to the catalog.
+Nothing noteworthy is the normal outcome — say nothing then.
+
+If you got here via `/appelent:feature apply auth`, that run's own reflection
+(`apply` step 6) already covers this skill — don't reflect twice.

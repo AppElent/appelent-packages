@@ -373,3 +373,13 @@ After the wiring commit compiles and tests pass, record in `appelent.json`
 at the app root (same commit as the wiring), including the locale choice:
 
     "i18n": { "version": 1, "options": { "locales": ["en", "nl"] } }
+
+## Self-improvement
+
+When this skill's work is done, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill* and offer to file it back to the catalog.
+Nothing noteworthy is the normal outcome — say nothing then.
+
+If you got here via `/appelent:feature apply i18n`, that run's own reflection
+(`apply` step 6) already covers this skill — don't reflect twice.

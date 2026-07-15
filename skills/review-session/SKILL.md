@@ -93,3 +93,16 @@ Ask me a single question: **"Want me to fix these now?"** Don't propose fixes, d
      > Fix everything in `./docs/review-notes/review-<date>-<time>.md`. Work through the action items in severity order. After each fix, verify it against that item's acceptance criteria and run typecheck, lint, and tests before considering it done — do not weaken tests to pass. Commit each item separately once it's done and verified (one commit per action item, not one commit at the end) so the change history stays reviewable and revertable per item.
 
      Don't start fixing things yourself in this same turn — the point of the compact + Goals handoff is a clean context for the execution work. Just give me the file path and the directive so I can start the Goal.
+
+## Self-improvement
+
+After the review file is written and handed off, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill's own instructions* and offer to file it
+back to the catalog.
+
+Keep the two separate: findings about the app under review belong in the review
+file you just wrote, and nowhere else. This reflection is only about the review
+procedure itself — an ambiguous step, a browser tool that didn't behave as
+documented, a judgment call the skill left open. Nothing noteworthy is the
+normal outcome — say nothing then.

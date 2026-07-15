@@ -111,18 +111,13 @@ list.
    commit as the wiring: `"<feature>": { "version": <FEATURE.md version>,
    "options": { ... } }` (omit `options` if none were chosen). Create the
    file with `{ "features": {} }` shape if missing.
-6. **Reflect on the apply itself, not the app.** While working through
-   steps 1-4, keep a running note of friction with `FEATURE.md`/
-   `SKILL.md` themselves — a command that didn't work as documented, a
-   missing or wrong code example, an ambiguous instruction, an option you
-   had to guess at. This is about the skill/docs, not the app code just
-   wired — same "flag uncertainty explicitly" principle as `capture`
-   (step 3) and `fix` (step 3) elsewhere.
-   - Nothing noteworthy → say nothing further; don't force a report.
-   - One or more entries → briefly summarize them to the user, then
-     propose filing a single catalog issue via `issue <text>` (title =
-     short summary, body = the individual points). Ask before filing —
-     never file automatically.
+6. **Reflect on the apply itself, not the app.** Follow
+   `references/self-improvement.md` — keep a running note of friction with
+   `FEATURE.md`/`SKILL.md` themselves while working through steps 1-4, then
+   propose a single catalog issue if anything is worth filing. This run's
+   reflection covers both this `apply` procedure and the feature `SKILL.md`
+   it followed, so that feature skill's own reflection stays quiet — don't
+   reflect twice.
 
 With `--update`: read the app's recorded version, apply only the
 Changelog deltas between recorded and current, then update the recorded
@@ -256,6 +251,16 @@ for the full procedure: fetch each issue, sketch a concrete solution and
 where it belongs, propose `brainstorm/plan` vs `just go` per issue —
 defaulting to `brainstorm/plan` whenever the sketch is genuinely uncertain
 — then implement or hand off accordingly), against `AppElent/appelent-packages`.
+
+## Self-improvement
+
+When any subcommand above is done, follow the reflection in
+`references/self-improvement.md` — notice what was unclear or underspecified
+about *this skill* and offer to file it back to the catalog. `apply` step 6
+is that same reflection, called out inline because it also covers the feature
+`SKILL.md` it followed; the other subcommands (`capture`, `fix`, `steps`, and
+the read-only ones) reflect on their own instructions. Nothing noteworthy is
+the normal outcome — say nothing then.
 
 For an app's installed-feature status or review passes (`review-app`/
 `review-session`), see the `appelent-project` skill (`/appelent:project`).

@@ -236,3 +236,17 @@ features included (auth/cli/i18n/mcp) as well as workflow skills
    silently clobber a hand-edited project-local copy.
 3. Report one line per skill: copied, already in sync, or skipped
    (declined overwrite).
+
+## Self-improvement
+
+When any subcommand above is done, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill* (its own instructions, not the app you were
+working in) and offer to file it back to the catalog. Nothing noteworthy is the
+normal outcome — say nothing then.
+
+Note the target repo: a reflection issue always goes to the catalog repo
+(`AppElent/appelent-packages`), **not** this app's repo, even though this front
+door's own `issue` verb files against the app. This skill lives in the catalog,
+so feedback about it belongs there. See "Target repo: always the catalog" in that
+reference for why this overrides "Issues: target repo and type labels" above.

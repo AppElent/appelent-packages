@@ -818,3 +818,13 @@ Before adding functionality that could apply to multiple apps, check the
 feature catalog first. To add or update a feature, use `/appelent`.
 <!-- appelent-managed:end -->
 ```
+
+## Self-improvement
+
+When this skill's work is done, follow the reflection in
+`../appelent-feature/references/self-improvement.md` — notice what was unclear
+or underspecified about *this skill* and offer to file it back to the catalog.
+Nothing noteworthy is the normal outcome — say nothing then.
+
+If you got here via `/appelent:feature apply baseline`, that run's own reflection
+(`apply` step 6) already covers this skill — don't reflect twice.
