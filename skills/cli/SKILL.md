@@ -28,7 +28,10 @@ also what Codex reads), not this skill:
    and a `"<app>": "tsx cli/index.ts"` script — copy the workouts shape. Add
    a wrapper smoke script such as `"cli:smoke": "tsx cli/index.ts --help &&
    tsx cli/index.ts config get --json && tsx cli/index.ts auth status"` and a
-   small CI workflow that installs with GitHub Packages auth and runs it.
+   small CI workflow that installs with GitHub Packages auth and runs it. Set
+   `<APPNAME>_CONFIG_DIR` as a step-level `env:` on the `cli:smoke` step, not
+   a job-level `env:` — see the `packages/cli` README's CI section for why
+   (job-level `env:` can't reference the `runner` context).
 3. App-specific commands (that hit the app's own API/Convex functions) go in the
    app via the `commands: CliCommand[]` option — **not** in the shared package.
    Keep `@appelent/cli` generic; never fork it into the app.
