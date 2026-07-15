@@ -152,6 +152,24 @@ test("baseline treats plugin workflow skills as primary, not copied project defa
 	assert.doesNotMatch(readme, /meant to be copied into an app/);
 });
 
+test("review workflow skills create GitHub issues instead of markdown review-note files", () => {
+	const root = process.cwd();
+	for (const name of ["review-app", "review-session"]) {
+		const skill = readFileSync(join(root, "skills", name, "SKILL.md"), "utf8");
+
+		assert.match(skill, /gh repo view --json nameWithOwner -q \.nameWithOwner/);
+		assert.match(skill, /gh issue create/);
+		assert.match(skill, /single GitHub issue|one GitHub issue/i);
+		assert.doesNotMatch(skill, /docs\/review-notes/);
+		assert.doesNotMatch(skill, /review-YYYY-MM-DD-HHMM/);
+		assert.doesNotMatch(skill, /auto-review-YYYY-MM-DD-HHMM/);
+		assert.doesNotMatch(
+			skill,
+			/Claude Code's \*\*Goals\*\* feature|Goals feature/,
+		);
+	}
+});
+
 test("baseline includes an app-local GitHub issue reporter scaffold", () => {
 	const root = process.cwd();
 	const feature = readFileSync(

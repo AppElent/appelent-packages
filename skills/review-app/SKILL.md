@@ -73,9 +73,25 @@ The moment something looks wrong, resolve where it lives in the code before movi
 
 CRUD on the app's own data is fine. Never trigger something with a real external effect — don't submit a form that would send a real email, hit a real payment provider, or call a real third-party webhook, even if the button is right there.
 
-## 8. Write the report
+## 8. Create the GitHub issue
 
-Save to `./docs/review-notes/auto-review-YYYY-MM-DD-HHMM.md` (create the folder if needed):
+Create one GitHub issue in the current app repo. Resolve the target repo with:
+
+```bash
+gh repo view --json nameWithOwner -q .nameWithOwner
+```
+
+If the repo cannot be resolved, `gh` is not authenticated, or issues are
+disabled, stop and report the `gh` failure plainly. Never fall back to the
+catalog repo.
+
+Use this issue title:
+
+```text
+Automated review: <scope or full app> - <date/time>
+```
+
+Use this issue body:
 
 ```md
 # Automated Review — <date/time>
@@ -121,28 +137,57 @@ Address all action items below. Each item is self-contained: route, file paths, 
 - [ ] ...
 ```
 
-Order items by severity within each section. Before saving, self-check: would a fresh Claude session with only this file be able to find and fix every item without asking a question? If not, go back and fill the gap (read the file, pin the acceptance criterion) rather than leaving it vague.
+Order items by severity within each section. Before creating the issue,
+self-check: would a fresh Claude session with only this GitHub issue be able
+to find and fix every item without asking a question? If not, go back and fill
+the gap (read the file, pin the acceptance criterion) rather than leaving it
+vague.
+
+Infer exactly one issue label:
+
+- `bug` if any blocker or major action item is broken behavior, a console
+  error, a network error, or an accessibility failure that blocks the flow.
+- `enhancement` otherwise.
+
+Ensure the chosen label exists using the shared Appelent issue convention:
+`gh label list --repo <target repo> --search <label>`; only if absent, create
+it with `gh label create <label> --repo <target repo> --color <color>
+--description "<description>"` where `bug` uses `d73a4a` / "Something isn't
+working" and `enhancement` uses `a2eeef` / "New feature or request".
+
+Create the issue:
+
+```bash
+gh issue create --repo <target repo> --title "<title>" --body "<issue body>" --label <label>
+```
 
 ## 9. Wrap up
 
-Give the file path and a one-line counts recap, then ask: **"Want me to fix these now?"**
+Give the GitHub issue URL and a one-line counts recap, then ask:
+**"Want me to fix this issue now?"**
 
-- If no: stop here. The file stays on disk.
-- If yes: tell the user to run `/compact` on this session first (you can't trigger that yourself), then hand the file to Claude Code's Goals feature, using the exact filename you saved in step 8, with:
-
-  > Fix everything in `./docs/review-notes/auto-review-YYYY-MM-DD-HHMM.md`. Work through the action items in severity order. After each fix, verify it against that item's acceptance criteria and run typecheck, lint, and tests before considering it done — do not weaken tests to pass. Commit each item separately once it's done and verified (one commit per action item, not one commit at the end) so the change history stays reviewable and revertable per item.
-
-  Don't start fixing things yourself in this same turn — give the file path and directive so the user can start the Goal with a clean context.
+- If no: stop here. The issue stays open for later.
+- If yes: use the created issue as the execution source. Work through the
+  action items in severity order; after each fix, verify against that item's
+  acceptance criteria and run typecheck, lint, and tests before considering it
+  done. Do not weaken tests to pass. Commit each item separately once done and
+  verified — one commit per action item, not one commit at the end. Offer to
+  close the issue only after all items are fixed and verified.
 
 ## Self-improvement
 
-After the review file is written and handed off, follow the reflection in
+Once the review issue exists and step 9 is settled, follow the reflection in
 `../appelent-feature/references/self-improvement.md` — notice what was unclear
 or underspecified about *this skill's own instructions* and offer to file it
 back to the catalog.
 
-Keep the two separate: findings about the app under review belong in the review
-file you just wrote, and nowhere else. This reflection is only about the review
-procedure itself — an ambiguous step, a browser tool that didn't behave as
-documented, a judgment call the skill left open. Nothing noteworthy is the
-normal outcome — say nothing then.
+**These are two different issues in two different repos — do not merge them.**
+Step 8's issue is the review's findings and goes to the **app's** repo. This
+one is about the review procedure itself — an ambiguous step, a browser tool
+that didn't behave as documented, a judgment call the skill left open — and
+goes to the **catalog** repo (`AppElent/appelent-packages`), because that's
+where this skill lives. Never put skill friction in the app's review issue, and
+never put app findings in the catalog.
+
+Nothing noteworthy is the normal outcome — say nothing then. A review that went
+smoothly should end at step 9.
