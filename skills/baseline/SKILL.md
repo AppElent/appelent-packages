@@ -38,12 +38,14 @@ Before starting, check (use `node -e "...existsSync..."` instead of `ls ... 2>/d
 - Whether the mobile-zoom fix already exists: grep the app's global CSS for
   `-webkit-touch-callout`.
 - Whether the app already has PWA wiring, and how complete it is: check
-  `package.json` for `vite-plugin-pwa`, look for a `manifest.webmanifest` (or
-  an older ad-hoc `manifest.json`) actually linked from the root route's
-  `head()`, and search for a service-worker registration call
-  (`virtual:pwa-register`, `navigator.serviceWorker.register`). A linked
-  manifest with no service worker registration is **partial**, not done —
-  don't treat it as already applied.
+  `package.json` for `workbox-build` and a `scripts/generate-sw.mjs` (or
+  equivalent), look for a `manifest.webmanifest` (or an older ad-hoc
+  `manifest.json`) actually linked from the root route's `head()`, and
+  search for a service-worker registration call
+  (`navigator.serviceWorker.register`). A linked manifest with no service
+  worker registration — or, worse, a leftover `vite-plugin-pwa` dependency
+  from before this step's recipe was corrected (see step 15) — is
+  **partial/broken**, not done; don't treat it as already applied.
 
 ## Task
 
@@ -835,9 +837,24 @@ pinch-zoom for low-vision users. Leave the viewport meta tag at the standard
 
 ### 15. Progressive Web App (PWA)
 
-Make the app installable with an auto-updating service worker. TanStack
-Start has no static `index.html`, so `vite-plugin-pwa`'s default
-HTML-injection mode doesn't apply — wire it manually instead.
+Make the app installable with an auto-updating service worker.
+
+**Do not use `vite-plugin-pwa`'s Vite-plugin integration.** It's
+incompatible with TanStack Start's multi-environment Vite build (client +
+Cloudflare Workers SSR via `@cloudflare/vite-plugin`) — its `generateSW`
+build step (the one that actually writes `sw.js`) silently never fires, so
+`pnpm build` succeeds but produces a manifest with no working service
+worker. This is a confirmed open upstream issue,
+[TanStack/router#4988](https://github.com/TanStack/router/issues/4988)
+("needs-upstream-fix"), and even the linked fix-attempt PR
+(`vite-pwa/vite-plugin-pwa#786`) reportedly has the same problem. Don't
+re-attempt the plugin-based approach expecting it to have been fixed
+without checking that issue's current status first.
+
+**Instead, generate the service worker as a plain post-build Node script**
+using `workbox-build` directly — no Vite plugin lifecycle involved, so the
+environment-API incompatibility never comes into play. This is the pattern
+the TanStack Start community has converged on for this exact problem.
 
 **Precache the static app shell only — never Convex/API traffic.** These
 apps depend on Convex's real-time websocket sync for live data; a service
@@ -845,62 +862,99 @@ worker caching API responses would serve stale data and fight that sync.
 The service worker's only job is fast reload + installability, not offline
 data access.
 
-1. **Install & configure.** Add `vite-plugin-pwa` as a devDependency. In
-   `vite.config.ts`, add it alongside the existing plugins:
-
-   ```ts
-   import { VitePWA } from "vite-plugin-pwa";
-
-   VitePWA({
-     registerType: "autoUpdate",
-     injectRegister: false, // no static index.html — TanStack Start is SSR
-     manifest: {
-       name: "<App Name>",
-       short_name: "<Short Name>",
-       description: "<one-line description>",
-       theme_color: "<app theme color>",
-       background_color: "<app background color>",
-       display: "standalone",
-       start_url: "/",
-       icons: [
-         { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
-         { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },
-         { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-       ],
-     },
-     workbox: {
-       globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
-       navigateFallbackDenylist: [/^\/api\//, /^\/convex\//],
-     },
-   })
-   ```
+1. **Install.** `pnpm add -D workbox-build` (this alone — no
+   `vite-plugin-pwa`, no `workbox-window`; the generated service worker is
+   self-contained and doesn't need a client-side runtime helper library).
 
 2. **Icons.** Check `public/` for an existing source logo first (a prior
-   ad-hoc PWA attempt sometimes left one, e.g. an unused `logo512.png`). If a
-   source image ≥512px exists, generate the full icon set (192, 512, maskable
-   512, apple-touch-icon 180x180) with `@vite-pwa/assets-generator`. If none
-   exists, flag it and ask — don't fabricate a placeholder icon.
+   ad-hoc PWA attempt or CRA-era scaffold often left one, e.g. an unused
+   `logo512.png`). If a source image ≥512px exists, generate the icon set
+   (192, 512, maskable 512, apple-touch-icon 180x180) with `pnpm dlx
+   @vite-pwa/assets-generator --preset minimal-2023 public/<source>.png`. If
+   none exists, flag it and ask — don't fabricate a placeholder icon. **The
+   generator has a side effect of overwriting `public/favicon.ico`** — check
+   `git status` after running it and `git checkout -- public/favicon.ico` to
+   restore it, since that file is out of scope for this step.
 
-3. **Wire the root route** (`src/routes/__root.tsx`, matching its existing
+3. **Write the manifest as a static file** — `public/manifest.webmanifest`
+   (not plugin-generated, since there's no plugin doing the generating
+   anymore):
+
+   ```json
+   {
+     "name": "<App Name>",
+     "short_name": "<Short Name>",
+     "start_url": "/",
+     "display": "standalone",
+     "theme_color": "<app theme color>",
+     "background_color": "<app background color>",
+     "icons": [
+       { "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png" },
+       { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png" },
+       { "src": "/maskable-icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+     ]
+   }
+   ```
+
+   If a stale, unlinked ad-hoc `public/manifest.json` exists (grep `src/` to
+   confirm nothing actually references it first), delete it — don't leave
+   two manifests around.
+
+4. **Add the post-build script**, `scripts/generate-sw.mjs`:
+
+   ```js
+   import { generateSW } from "workbox-build";
+
+   const { count, size, warnings } = await generateSW({
+     globDirectory: "dist/client",
+     globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+     swDest: "dist/client/sw.js",
+     navigateFallbackDenylist: [/^\/api\//, /^\/convex\//],
+     skipWaiting: true,
+     clientsClaim: true,
+   });
+
+   for (const warning of warnings) {
+     console.warn(warning);
+   }
+   console.log(`generate-sw: precached ${count} files, ${(size / 1024).toFixed(1)} KB`);
+   ```
+
+   Wire it onto the end of every `build`/`build:development` script in
+   `package.json` (`vite build && ... && node scripts/generate-sw.mjs`) —
+   append after any other post-build step already there (e.g. copying an
+   instrumentation file), never replace it.
+
+5. **Wire the root route** (`src/routes/__root.tsx`, matching its existing
    `head()` `meta`/`links` shape):
-   - Add `{ rel: "manifest", href: "/manifest.webmanifest" }` to `links`. If
-     an older ad-hoc `{ rel: "manifest", href: "/manifest.json" }` is already
-     there, replace it — `vite-plugin-pwa` generates its own.
+   - Add `{ rel: "manifest", href: "/manifest.webmanifest" }` to `links`.
    - Add a `theme-color` meta entry, plus `apple-mobile-web-app-capable` and
      `apple-mobile-web-app-status-bar-style` for iOS home-screen behavior.
    - Add an `apple-touch-icon` link (180x180) alongside the existing icon
      link.
-   - Register the service worker **client-side only, never during SSR**: a
-     small effect that dynamically imports `virtual:pwa-register` and calls
-     the returned update function, guarded so it only runs in the browser —
-     mirror however the app already isolates client-only providers (e.g. the
-     Clerk/Convex provider wiring in the root component).
+   - Register the service worker **client-side only, never during SSR**,
+     with a plain registration call (no virtual module, since this isn't
+     `vite-plugin-pwa`):
+     ```ts
+     useEffect(() => {
+       if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+       navigator.serviceWorker.register("/sw.js").catch(() => {
+         // non-fatal: app still works without offline/installable support
+       });
+     }, []);
+     ```
+     Place it wherever the root component already does client-only work
+     (theme init, provider mounting, etc.).
 
-4. **Verify.** `pnpm build`, serve the built client output (or `wrangler
-   dev` against it), open Chrome DevTools → Application → Manifest/Service
-   Workers, confirm the app shows as installable and the service worker
-   activates. Confirm no Convex/API request appears under the service
-   worker's cache storage.
+6. **Verify.** Run the app's actual `build` script (not just the
+   `generateSW` script in isolation) and confirm `dist/client/sw.js` and
+   `dist/client/manifest.webmanifest` both exist — this is the real check,
+   since the whole point of this step is that the naive plugin-based
+   approach passes `pnpm build` without producing a service worker at all.
+   Then serve the built client output (or `wrangler dev` against it), open
+   Chrome DevTools → Application → Manifest/Service Workers, confirm the app
+   shows as installable and the service worker activates. Confirm no
+   Convex/API request appears under the service worker's cache storage.
 
 ## Persistence
 
