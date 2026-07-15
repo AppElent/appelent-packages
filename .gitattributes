@@ -1,0 +1,6 @@
+# Git already stores every text file LF-only. Without this, core.autocrlf=true
+# checks them out CRLF on Windows, which Biome (formatter.lineEnding defaults to
+# "lf") then reports as a formatting error in every file — `pnpm lint` fails on a
+# clean Windows checkout. Pin the working tree to LF on every platform so the
+# checkout matches what Git and Biome both expect.
+* text=auto eol=lf

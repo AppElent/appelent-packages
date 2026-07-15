@@ -1,11 +1,11 @@
 {
-  "schemaVersion": 1,
-  "projects": [
-    "D:\\Dev\\games",
-    "D:\\Dev\\gather",
-    "D:\\Dev\\golf-app",
-    "D:\\Dev\\roadmaps",
-    "D:\\Dev\\satisfactory",
-    "D:\\Dev\\workouts"
-  ]
+	"schemaVersion": 1,
+	"projects": [
+		"D:\\Dev\\games",
+		"D:\\Dev\\gather",
+		"D:\\Dev\\golf-app",
+		"D:\\Dev\\roadmaps",
+		"D:\\Dev\\satisfactory",
+		"D:\\Dev\\workouts"
+	]
 }
