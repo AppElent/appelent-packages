@@ -1,6 +1,6 @@
 ---
 name: baseline
-version: 5
+version: 6
 description: The Appelent project baseline for TanStack Start + Convex + Clerk + Cloudflare Workers apps
 ---
 
@@ -10,8 +10,10 @@ description: The Appelent project baseline for TanStack Start + Convex + Clerk +
 
 The shared project foundation every Appelent app starts from: package
 management, formatting, testing, deploy config, CI, required scripts, an
-app-local GitHub issue reporter, mobile-viewport hygiene, and PWA
-installability. Applying it is idempotent — merge, don't clobber.
+app-local GitHub issue reporter, mobile-viewport hygiene, PWA
+installability, and shared UI-hygiene mechanisms (toasts, confirm dialogs,
+skeletons, empty/error states). Applying it is idempotent — merge, don't
+clobber.
 
 ## Stack
 
@@ -50,6 +52,10 @@ owns stamping the managed block in `CLAUDE.md`/`AGENTS.md` and creating
 
 ## Changelog
 
+- 6 — UI hygiene step (16): Base UI toast notifications, promise-based
+  `useConfirm()` destructive-action dialog, skeleton + empty-state
+  primitives, default route error fallback, Button pending state, and
+  title/a11y conventions; the managed block gains a UI-hygiene checklist
 - 5 — step 6 (editor/Biome/Claude Code hygiene) ensures a `.worktreeinclude`
   file exists at the repo root, so the Claude Code desktop app copies
   gitignored env files and `.claude/settings.local.json` into new git

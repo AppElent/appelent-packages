@@ -969,6 +969,105 @@ data access.
    shows as installable and the service worker activates. Confirm no
    Convex/API request appears under the service worker's cache storage.
 
+### 16. UI hygiene (loading, confirm, notifications, empty/error states)
+
+Every baseline app ships the same small set of UI-hygiene mechanisms and
+follows the same conventions (stamped into the managed block, see the
+"Managed block" section). Everything builds on `@base-ui/react` (already in
+the stack — it exports `./toast` and `./alert-dialog`) + Tailwind: **zero
+new dependencies**. Reference implementation: workouts
+(`src/components/ui/toast.tsx`, `confirm-dialog.tsx`, `skeleton.tsx`,
+`empty-state.tsx`, `RouteErrorFallback.tsx`). Merge, don't clobber — if the
+app already has a toast/confirm/skeleton mechanism, align it with the
+contracts below rather than adding a duplicate.
+
+- **Detect existing state first.** Search for `window.confirm`/`confirm(`
+  call sites, any existing toast/notification library (`react-toastify`,
+  `sonner`, `notistack`), and skeleton/empty-state components before
+  scaffolding. An existing third-party toast lib is a flag-and-discuss,
+  not a silent replacement.
+
+- **Notifications (`src/components/ui/toast.tsx`).** Base UI `Toast`
+  provider + viewport mounted once in the root layout, plus a `useToast()`
+  hook exposing `success`/`error`/`info` helpers. Contract:
+
+  ```ts
+  useToast(): {
+  	success: (title: string, description?: string) => string;
+  	error: (title: string, description?: string) => string;   // priority "high", longer timeout
+  	info: (title: string, description?: string) => string;
+  }
+  ```
+
+  Style with the app's own design tokens. `Toast.Title`/`Toast.Description`
+  with no children auto-render the toast's `title`/`description`. Position
+  the viewport clear of the app's mobile nav (workouts uses `bottom-20
+  sm:bottom-6` to clear its bottom tab bar). Note: Base UI mirrors each
+  toast's text into a visually-hidden `role="alert"` announcement region,
+  so tests asserting toast text must scope queries to the visible viewport
+  region to avoid duplicate matches.
+
+- **Destructive-action confirm (`src/components/ui/confirm-dialog.tsx`).**
+  Base UI `AlertDialog` wrapped in a provider + promise-based `useConfirm()`
+  so call sites read like `window.confirm`:
+
+  ```ts
+  const confirm = useConfirm();
+  const ok = await confirm({
+  	title: "Delete this workout?",
+  	description: "This cannot be undone.",
+  	confirmLabel: "Delete workout", // verb-specific — never "OK"/"Yes"
+  	cancelLabel: "Cancel",          // optional, defaults to "Cancel"
+  	destructive: true,              // red styling on the confirm button
+  }); // Promise<boolean> — false on cancel, Escape, or dismiss
+  ```
+
+  Implementation shape: context provider holding `ConfirmOptions | null`
+  state + a resolve ref; `onOpenChange(false)` settles `false`; a second
+  `confirm()` while one is open settles the first as `false`. AlertDialog
+  (not Dialog) is deliberate: no close-on-outside-press, focus trap and
+  Escape handling for free.
+
+- **Skeleton (`src/components/ui/skeleton.tsx`).** A tiny `animate-pulse`
+  primitive (`<Skeleton className="h-4 w-32" />`, `aria-hidden`). Per-view
+  skeletons are composed from it and must match the final layout so nothing
+  shifts when data arrives. Convention, not enforcement: new async views
+  render a skeleton, never a blank page or spinner-only screen.
+
+- **Empty state (`src/components/ui/empty-state.tsx`).** `EmptyState` with
+  `icon?` (Lucide), `title`, `description?`, `action?` (CTA node). Every
+  list/dashboard view renders one when it has no data.
+
+- **Route error fallback.** A shared error component (icon + message +
+  "Try again" button calling the boundary's `reset()` and
+  `router.invalidate()`), wired as the router's `defaultErrorComponent`.
+  Route errors render this, never a white screen.
+
+- **Pending actions.** The app's `Button` gets a `loading?: boolean` prop
+  (disabled + spinner while a mutation is in flight, preventing
+  double-submit). Forms keep the user's input on failure.
+
+- **Page titles & a11y.** Per-route document titles via the route `head`
+  option; `aria-label` on icon-only buttons; dialogs/popovers via Base UI
+  primitives only.
+
+- **Bounded retrofit when applying this step to an existing app** (the rest
+  lands opportunistically under the stamped conventions):
+  1. Replace every `window.confirm`/bare `confirm()` call site with
+     `useConfirm()` (verb-specific labels, `destructive: true` where it is).
+  2. Sweep the retrofitted handlers' mutation calls so failures surface via
+     `toast.error(...)` — including converting inline error-text state to
+     toasts where that leaves the UI more consistent.
+  3. Mount `ToastHost` + `ConfirmDialogProvider` once in the root layout.
+
+- **Tests.** Unit-test the mechanisms with the app's test setup (Vitest +
+  Testing Library in this stack): `useConfirm` resolves true/false on
+  confirm/cancel/Escape and throws outside its provider; toasts render
+  title + description with an accessible dismiss control; `Button loading`
+  disables the button. Base UI needs the jsdom
+  `ResizeObserver`/`scrollIntoView` polyfills (copy the pattern from the
+  app's existing Base UI tests).
+
 ## Persistence
 
 **Safe to write into the project's `CLAUDE.md`** — structural facts, not secrets: the wrangler app name, deploy target, which `@appelent` packages the app needs, and the **names** of required env vars (not their values). Write these once discovered so future runs don't re-derive or re-ask them.
@@ -993,6 +1092,24 @@ plugin (locally installed) or https://github.com/AppElent/appelent-packages
 
 Before adding functionality that could apply to multiple apps, check the
 feature catalog first. To add or update a feature, use `/appelent`.
+
+### UI hygiene
+
+- Async views render a skeleton (`ui/skeleton.tsx`) matching the final
+  layout — never a blank page or a spinner-only screen.
+- Destructive actions go through `useConfirm()` (`ui/confirm-dialog.tsx`) —
+  never `window.confirm`. Confirm buttons use verb-specific labels
+  ("Delete workout", not "OK").
+- Mutations: the trigger button shows a pending state (`Button loading`);
+  errors always surface an error toast (`useToast().error`); success toasts
+  only when the result isn't already visible on screen. Forms keep the
+  user's input on failure.
+- List/dashboard views define an `EmptyState` (`ui/empty-state.tsx`) —
+  never an unexplained blank region.
+- Every route defines a document title (route `head`); route errors render
+  the shared error fallback with retry, not a white screen.
+- Icon-only buttons get an `aria-label`. Dialogs/popovers use Base UI
+  primitives only.
 <!-- appelent-managed:end -->
 ```
 

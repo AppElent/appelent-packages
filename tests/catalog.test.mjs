@@ -181,8 +181,11 @@ test("baseline includes an app-local GitHub issue reporter scaffold", () => {
 		"utf8",
 	);
 
-	assert.match(feature, /^version: 5$/m);
+	assert.match(feature, /^version: 6$/m);
 	assert.match(feature, /GitHub issue reporter/);
+	assert.match(skill, /### 16\. UI hygiene/);
+	assert.match(skill, /useConfirm/);
+	assert.match(skill, /never `window\.confirm`/);
 	assert.match(skill, /\/api\/github\/issues/);
 	assert.match(skill, /GITHUB_ISSUES_TOKEN/);
 	assert.match(skill, /window\.location\.href/);
