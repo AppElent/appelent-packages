@@ -12,8 +12,8 @@ The skill has three explicit modes. It must not infer a mode from ordinary prose
 
 | Mode | Invocation | Purpose |
 | --- | --- | --- |
-| Orchestration | `delivery orchestrate <tickets-or-map> [--wip N] [--agent auto|codex|claude]` | Coordinate dependency-aware ticket work. |
-| Execution | `delivery execute <ticket> [--in-place]` | Execute a ticket that is ready for an agent. |
+| Orchestration | `delivery orchestrate <tickets-or-map> [--wip N] [--agent auto|codex|claude] [--agent-args <args>]` | Coordinate dependency-aware ticket work. |
+| Execution | `delivery execute <ticket> [--in-place] [--agent auto|codex|claude] [--agent-args <args>]` | Execute a ticket that is ready for an agent. |
 | Completion | `delivery finish <ticket> --local-merge|--open-pr|--close-only` | Validate and perform the explicitly requested completion path. |
 
 The default work-in-progress limit is four. The skill must render a compact ticket table
@@ -54,6 +54,14 @@ complexity, available providers, and best-effort quota information. The user can
 Codex or Claude with `--agent`. A quota check that cannot be made reliably produces a
 visible warning but does not block dispatch.
 
+`--agent-args <args>` is an optional, verbatim startup-argument string for the chosen AI
+CLI, such as a Claude `--remote-control` option. The preflight displays the complete
+resolved agent command before creating a terminal. Orca's managed worker launcher is used
+when it supports the requested provider/model/effort options; otherwise the coordinator uses
+Orca's documented custom-command terminal path, waits for TUI readiness, and then injects
+the tracked task. Startup arguments are never invented, altered, or included in status
+tables. Values that appear to contain credentials must not be echoed in reports or prompts.
+
 The user-facing status table uses ticket-oriented states: `queued`, `blocked`, `ready`,
 `dispatched`, `completed`, and `failed`. The table is the external account of what the
 coordinator set out to do. Orca Run/Task/Dispatch records are internal durable bookkeeping
@@ -86,8 +94,9 @@ child worktrees of the active worktree. Worktree creation launches the selected 
 ticket-specific prompt; same-worktree decision and triage work launches a fresh terminal.
 
 Before starting any worker, the coordinator must present a dispatch proposal table: ticket,
-work kind, selected provider/tier, workspace, resulting WIP, dependency rationale, and any
-quota warning. It waits for approval before launching that wave.
+work kind, selected provider/tier, complete startup command (with sensitive values redacted),
+workspace, resulting WIP, dependency rationale, and any quota warning. It waits for approval
+before launching that wave.
 
 The coordinator dispatches only ready tickets and never exceeds the WIP limit. It does not
 poll, wake, or otherwise monitor workers automatically after returning control. On an
@@ -114,9 +123,10 @@ terminal for triage or Wayfinder work.
 
 When execution is already running in a ticket-specific worker worktree, it works there.
 When directly invoked outside such a worker, it presents a preflight containing the ticket,
-classified work kind, proposed workspace, selected agent/tier, expected validation, and
-quota warning. It offers to launch the session in that workspace. `--in-place` is the only
-route that permits direct edits in the current workspace.
+classified work kind, proposed workspace, selected agent/tier, complete startup command
+(with sensitive values redacted), expected validation, and quota warning. It offers to launch
+the session in that workspace. `--in-place` is the only route that permits direct edits in
+the current workspace.
 
 During work the agent updates the Orca worktree comment at meaningful checkpoints. At the
 end it reports the outcome, validation or evidence, blockers or uncertainty, and smells or
