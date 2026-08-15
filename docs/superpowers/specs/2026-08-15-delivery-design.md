@@ -13,7 +13,7 @@ The skill has three explicit modes. It must not infer a mode from ordinary prose
 | Mode | Invocation | Purpose |
 | --- | --- | --- |
 | Orchestration | `delivery orchestrate <tickets-or-map> [--wip N] [--agent auto|codex|claude]` | Coordinate dependency-aware ticket work. |
-| Implementation | `delivery implement <ticket> [--in-place]` | Work a ticket that is ready for an agent. |
+| Execution | `delivery execute <ticket> [--in-place]` | Execute a ticket that is ready for an agent. |
 | Completion | `delivery finish <ticket> --local-merge|--open-pr|--close-only` | Validate and perform the explicitly requested completion path. |
 
 The default work-in-progress limit is four. The skill must render a compact ticket table
@@ -29,7 +29,7 @@ skills/delivery/
   SKILL.md
   references/
     orchestration.md
-    ticket-implementation.md
+    ticket-execution.md
     dispatch-contract.md
 ```
 
@@ -62,7 +62,7 @@ Matt Pocock ticket workflow.
 
 Manual Orca terminals are unmanaged and never count toward WIP. Only currently active
 dispatches created by this delivery run count. A terminal that invoked
-`delivery implement <ticket>` can be offered opt-in adoption into a matching active run;
+`delivery execute <ticket>` can be offered opt-in adoption into a matching active run;
 the skill never auto-adopts it, and never offers adoption for an unrelated terminal.
 
 ## Orchestration mode
@@ -96,31 +96,40 @@ the internal Orca task/dispatch state, surfaces questions and blockers, and prop
 ready wave when capacity is available. This preserves asynchronous user-controlled progress
 checks while retaining dependency state across turns.
 
-## Implementation mode
+## Execution mode
 
-Implementation assumes the supplied ticket is ready for an agent and invokes Matt Pocock's
-implementation guidance. It does not enter plan mode. When a ticket is not ready, it offers
-to start a separate same-workspace terminal for Matt Pocock triage or Wayfinder work instead
-of beginning implementation.
+`delivery execute` assumes the supplied ticket is ready for an agent, not necessarily ready
+to code. It uses Matt Pocock's triage or Wayfinder guidance to classify the work kind, then
+loads the applicable Matt Pocock workflow. It does not enter plan mode. A ticket that is not
+ready for any agent is not executed; instead, the skill offers a separate same-workspace
+terminal for triage or Wayfinder work.
 
-When implementation is already running in a ticket-specific worker worktree, it works there.
+| Ready work kind | Execution workflow | Default workspace |
+| --- | --- | --- |
+| Decision | Grilling or the applicable decision workflow | Fresh terminal in the active worktree. |
+| Grilling | Matt Pocock grilling | Fresh terminal in the active worktree. |
+| Wayfinder child | Matt Pocock Wayfinder | Fresh terminal in the active worktree. |
+| Prototype | Prototype workflow and validation | New child worktree. |
+| Coding implementation | Matt Pocock implementation | New child worktree. |
+
+When execution is already running in a ticket-specific worker worktree, it works there.
 When directly invoked outside such a worker, it presents a preflight containing the ticket,
-proposed child worktree, selected agent/tier, expected validation, and quota warning. It
-offers to launch implementation in that child worktree. `--in-place` is the only route that
-permits direct edits in the current workspace.
+classified work kind, proposed workspace, selected agent/tier, expected validation, and
+quota warning. It offers to launch the session in that workspace. `--in-place` is the only
+route that permits direct edits in the current workspace.
 
 During work the agent updates the Orca worktree comment at meaningful checkpoints. At the
-end it reports changes, validation, blockers or uncertainty, and smells or follow-up
-recommendations. It offers to create selected follow-up tickets through Matt Pocock's ticket
-workflow but never creates any silently. A successful session retains its terminal, worktree,
-and running development environment for manual inspection.
+end it reports the outcome, validation or evidence, blockers or uncertainty, and smells or
+follow-up recommendations. It offers to create selected follow-up tickets through Matt
+Pocock's ticket workflow but never creates any silently. A successful session retains its
+terminal, worktree when present, and running development environment for manual inspection.
 
 ## Completion mode
 
 `delivery finish` requires one completion flag so success never implies authority to merge,
-open a pull request, or close a ticket. It first verifies the ticket's reported validation
-and any required repository checks. A failed validation is reported as failed and leaves the
-environment intact.
+open a pull request, or close a ticket. It first verifies the ticket's reported evidence and
+any required repository checks. A failed validation or missing decision/prototype evidence is
+reported as failed and leaves the environment intact.
 
 The selected action is exactly one of:
 
@@ -147,5 +156,5 @@ The skill reports exact failures rather than implying progress:
   ticket/merge/PR action.
 
 Every response ends with a compact table. Orchestration uses `Ticket`, `Description`, and
-`Status`. Implementation and completion use `Area`, `Status`, and `Detail`, and include an
+`Status`. Execution and completion use `Area`, `Status`, and `Detail`, and include an
 optional follow-ups row when smells or future work were identified.
