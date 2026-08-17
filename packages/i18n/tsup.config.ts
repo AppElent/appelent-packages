@@ -4,6 +4,7 @@ import { defineConfig } from "tsup";
 export default defineConfig({
 	entry: [
 		"src/index.tsx",
+		"src/core.ts",
 		"src/server.ts",
 		"src/clerk-sync.tsx",
 		"src/test-utils.ts",

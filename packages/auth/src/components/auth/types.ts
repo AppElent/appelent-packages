@@ -22,16 +22,7 @@ export interface AuthConfig {
 	socialProviders: SocialProvider[];
 }
 
-interface ClerkLikeError {
-	errors?: { longMessage?: string; message?: string }[];
-}
-
-/** Extract a readable message from a thrown Clerk error (or any error). */
-export function clerkErrorMessage(
-	err: unknown,
-	fallback = "Something went wrong.",
-): string {
-	const e = err as ClerkLikeError;
-	const first = e?.errors?.[0];
-	return first?.longMessage ?? first?.message ?? fallback;
-}
+// Moved to ../core (DOM-free, shared with mobile) — re-exported here so
+// existing imports of `clerkErrorMessage` from "./types" keep working
+// unchanged. See AppElent/workouts#48.
+export { clerkErrorMessage } from "@/core";

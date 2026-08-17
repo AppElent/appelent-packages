@@ -22,9 +22,9 @@ export {
 	type SocialProvider,
 } from "@/components/auth/types";
 export { ThemeSync } from "@/components/ThemeSync";
-export { default as HeaderUser } from "@/integrations/clerk/header-user";
 // Lib
-export { shouldShowTestLogin } from "@/lib/authEnv";
+export { shouldShowTestLogin } from "@/core";
+export { default as HeaderUser } from "@/integrations/clerk/header-user";
 export {
 	applyThemeMode,
 	getInitialMode,
