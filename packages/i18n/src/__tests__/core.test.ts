@@ -77,4 +77,32 @@ describe("plural", () => {
 			plural("nl", 4, { one: "{count} speler", other: "{count} spelers" }),
 		).toBe("4 spelers");
 	});
+
+	it("falls back to count===1 when Intl.PluralRules is absent (Hermes)", () => {
+		const intl = Intl as { PluralRules?: typeof Intl.PluralRules };
+		const original = intl.PluralRules;
+		intl.PluralRules = undefined;
+		try {
+			expect(
+				plural("en", 1, {
+					one: "{count} player",
+					other: "{count} players",
+				}),
+			).toBe("1 player");
+			expect(
+				plural("en", 0, {
+					one: "{count} player",
+					other: "{count} players",
+				}),
+			).toBe("0 players");
+			expect(
+				plural("en", 2, {
+					one: "{count} player",
+					other: "{count} players",
+				}),
+			).toBe("2 players");
+		} finally {
+			intl.PluralRules = original;
+		}
+	});
 });
