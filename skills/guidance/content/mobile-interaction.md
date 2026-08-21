@@ -1,12 +1,3 @@
-# How a mobile client behaves
-
-The rules an AppElent mobile app follows: what a press does, what a swipe
-does, what buzzes, what appears while things load. Short and prescriptive —
-obeyed by default. When you add a screen, it follows these rules; when a
-rule turns out wrong for a specific app, change it in that app's local
-section below this block rather than making a silent exception in a
-component.
-
 ## The one idea underneath all of it
 
 **Don't draw what the platform can draw.** iOS already knows how to render a
