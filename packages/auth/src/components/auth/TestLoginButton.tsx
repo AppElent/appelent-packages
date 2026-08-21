@@ -1,6 +1,6 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
-import { shouldShowTestLogin } from "@/lib/authEnv";
+import { shouldShowTestLogin } from "@/core";
 import { AuthButton } from "./AuthButton";
 import { AuthError } from "./AuthError";
 import { clerkErrorMessage } from "./types";

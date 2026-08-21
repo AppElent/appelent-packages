@@ -67,6 +67,32 @@ import "@appelent/auth/tokens.css";
 `ForgotPasswordForm` in `src/routes/{sign-in,sign-up,forgot-password}.tsx`,
 `HeaderUser` in the sidebar, `ProfilePanel` at `/account`.
 
+## Protected routes (Convex-backed)
+
+This package doesn't own routing — each app wires its own route guard for
+Convex-backed layouts. Gate the redirect on Clerk's `isSignedIn`
+(`@clerk/clerk-react`'s `useAuth()`), **not** on Convex's
+`useConvexAuth().isAuthenticated`. Right after a fresh sign-in, Convex's
+Clerk-token handshake can lag or even hang; if the guard redirects to
+`/sign-in` whenever Convex hasn't confirmed auth yet, it disagrees with the
+sign-in page (which navigates away as soon as Clerk reports signed-in), and
+the two routes ping-pong forever. Treat "Clerk says signed in, Convex hasn't
+confirmed yet" as a loading state, not a reason to redirect:
+
+```tsx
+const { isLoaded, isSignedIn } = useAuth(); // @clerk/clerk-react
+const { isAuthenticated } = useConvexAuth(); // convex/react
+
+useEffect(() => {
+  if (isLoaded && !isSignedIn) navigate({ to: "/sign-in" });
+}, [isLoaded, isSignedIn, navigate]);
+
+if (!isLoaded || (isSignedIn && !isAuthenticated)) return <Loading />;
+if (!isSignedIn) return null;
+```
+
+`gather`'s `src/routes/_app.tsx` is the reference implementation.
+
 ## Dev test login
 
 `TestLoginButton` (rendered by `SignInForm`) shows a "▶ Dev: log in as test

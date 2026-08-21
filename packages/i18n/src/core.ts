@@ -44,13 +44,26 @@ export function fmt(
 	);
 }
 
-/** Pick a plural form and fill {count}. Assumes one/other CLDR categories. */
+/**
+ * Pick a plural form and fill {count}. Assumes one/other CLDR categories.
+ *
+ * Falls back to `count === 1 ? "one" : "other"` when `Intl.PluralRules` is
+ * unavailable (e.g. Hermes/React Native — see appelent-packages#16). That
+ * fallback is exact for any locale whose CLDR `one` category is `i = 1 and
+ * v = 0` (English and Dutch both are); it is only reached in an environment
+ * that would otherwise have crashed, so it is strictly an improvement.
+ */
 export function plural<L extends string>(
 	locale: L,
 	count: number,
 	forms: { one: string; other: string },
 ): string {
-	const category = new Intl.PluralRules(locale).select(count);
+	const category =
+		typeof Intl?.PluralRules === "function"
+			? new Intl.PluralRules(locale).select(count)
+			: count === 1
+				? "one"
+				: "other";
 	const template = category === "one" ? forms.one : forms.other;
 	return fmt(template, { count });
 }
