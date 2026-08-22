@@ -1,6 +1,6 @@
 ---
 name: guidance
-version: 1
+version: 2
 description: Cross-project AI-session guidance docs (decided rules + research trail) for areas like mobile interaction, synced from one canonical source into each app's docs/
 ---
 
@@ -49,3 +49,11 @@ files under the target app's `docs/`.
   module references, ADR links, and file paths stayed local to that app;
   gather's existing research doc predated this feature and was kept
   as-is rather than replaced by this feature's generic research note).
+- 2 — Titles rewritten as a three-way taxonomy (Index / Pushed / Detail),
+  decided by content rather than nesting depth; ported gather's Index
+  large-title wiring mechanics (including the first-subview precondition)
+  into the canonical content, which had drifted behind gather's own copy;
+  added the Detail pattern (pinned media + optional pinned tab strip, no
+  bar title, real title lives in the scrolling body) with a named
+  exception to the "text-in-scroll-view isn't a title" rule, and the
+  always-set invisible `title` for VoiceOver/app-switcher naming.
