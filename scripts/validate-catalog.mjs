@@ -9,19 +9,19 @@ const REQUIRED_SECTIONS = [
 	"Changelog",
 ];
 
-// Skills that are deliberately not catalog features, and so are exempt from the
-// FEATURE.md contract. This is the single source of truth: it can't be derived
-// from FEATURE.md's presence, because a feature that simply forgot its
+// The catalog's two front doors: skills, but not features, and so exempt from
+// the FEATURE.md contract. This is the single source of truth — it can't be
+// derived from FEATURE.md's presence, because a feature that simply forgot its
 // FEATURE.md must still be an error rather than a silent skip. Tests import
 // this, and validateExcludedProse below keeps appelent-feature's prose copy of
 // the list honest.
-export const EXCLUDED = new Set([
-	"appelent-feature",
-	"appelent-project",
-	"review-app",
-	"review-session",
-	"upgrade-deps",
-]);
+//
+// Everything else here is a feature: a ready-made module that installs code or
+// writes files into an app and records its version in that app's
+// appelent.json. Skills that leave nothing behind live in the toolbox plugin
+// (AppElent/appelent-skills) instead — which is why review-app, review-session
+// and upgrade-deps are no longer in this set.
+export const EXCLUDED = new Set(["appelent-feature", "appelent-project"]);
 
 const FRONT_DOOR_SKILL = join("skills", "appelent-feature", "SKILL.md");
 

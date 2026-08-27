@@ -1,7 +1,7 @@
 {
 	"name": "appelent",
 	"description": "Appelent feature catalog: shared design decisions (auth, cli, i18n, mcp, baseline) as applyable skills backed by @appelent/* packages",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"author": {
 		"name": "AppElent"
 	},
@@ -21,7 +21,9 @@
 		"longDescription": "Appelent packages shared app design decisions as Codex skills backed by reusable @appelent/* packages.",
 		"developerName": "AppElent",
 		"category": "Productivity",
-		"capabilities": ["Skills"],
+		"capabilities": [
+			"Skills"
+		],
 		"defaultPrompt": "Apply an Appelent feature."
 	}
 }

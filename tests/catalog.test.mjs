@@ -111,7 +111,7 @@ test("SKILL.md must have name and description frontmatter", () => {
 	rmSync(root, { recursive: true, force: true });
 });
 
-test("plugin utility skills (appelent-project, review-app, review-session, upgrade-deps) are excluded from the FEATURE.md contract", () => {
+test("the catalog front doors (appelent-project) are excluded from the FEATURE.md contract", () => {
 	const root = makeRepo();
 	writeFeature(root, "mcp");
 	for (const name of [...EXCLUDED].filter((n) => n !== "appelent-feature")) {
@@ -138,36 +138,19 @@ test("baseline treats plugin workflow skills as primary, not copied project defa
 	);
 	const readme = readFileSync(join(root, "README.md"), "utf8");
 
-	assert.doesNotMatch(
-		baseline,
-		/sync-skills review-app review-session upgrade-deps/,
-	);
+	assert.doesNotMatch(baseline, /sync-skills/);
 	assert.doesNotMatch(baseline, /project-local copies/);
 	assert.doesNotMatch(baseline, /\.claude\/skills\/upgrade-deps\/SKILL\.md/);
 	assert.match(
 		baseline,
 		/Use the plugin-provided `review-app`,\s+`review-session`, and `upgrade-deps`\s+skills directly/,
 	);
-	assert.match(project, /fallback-only/);
+	// The workflow skills moved to the toolbox plugin; the catalog must not
+	// offer a copy path back into an app, and appelent-project no longer has
+	// a sync-skills verb to be a "fallback" for.
+	assert.match(baseline, /toolbox/);
+	assert.doesNotMatch(project, /sync-skills/);
 	assert.doesNotMatch(readme, /meant to be copied into an app/);
-});
-
-test("review workflow skills create GitHub issues instead of markdown review-note files", () => {
-	const root = process.cwd();
-	for (const name of ["review-app", "review-session"]) {
-		const skill = readFileSync(join(root, "skills", name, "SKILL.md"), "utf8");
-
-		assert.match(skill, /gh repo view --json nameWithOwner -q \.nameWithOwner/);
-		assert.match(skill, /gh issue create/);
-		assert.match(skill, /single GitHub issue|one GitHub issue/i);
-		assert.doesNotMatch(skill, /docs\/review-notes/);
-		assert.doesNotMatch(skill, /review-YYYY-MM-DD-HHMM/);
-		assert.doesNotMatch(skill, /auto-review-YYYY-MM-DD-HHMM/);
-		assert.doesNotMatch(
-			skill,
-			/Claude Code's \*\*Goals\*\* feature|Goals feature/,
-		);
-	}
 });
 
 test("baseline includes an app-local GitHub issue reporter scaffold", () => {
@@ -201,11 +184,11 @@ test("every skill must reference the self-improvement reflection, excluded ones 
 	writeFeature(root, "mcp", {
 		skillMd: "---\nname: mcp\ndescription: use when x\n---\n# mcp\n",
 	});
-	const dir = join(root, "skills", "upgrade-deps");
+	const dir = join(root, "skills", "appelent-project");
 	mkdirSync(dir, { recursive: true });
 	writeFileSync(
 		join(dir, "SKILL.md"),
-		"---\nname: upgrade-deps\ndescription: use when x\n---\n# upgrade-deps\n",
+		"---\nname: appelent-project\ndescription: use when x\n---\n# appelent-project\n",
 	);
 
 	const errors = validateCatalog(root);
@@ -216,7 +199,7 @@ test("every skill must reference the self-improvement reflection, excluded ones 
 	);
 	assert.match(
 		errors.join("\n"),
-		/upgrade-deps: SKILL\.md does not reference self-improvement\.md/,
+		/appelent-project: SKILL\.md does not reference self-improvement\.md/,
 	);
 	rmSync(root, { recursive: true, force: true });
 });
@@ -298,12 +281,12 @@ test("appelent-feature's prose must name every EXCLUDED skill, so the two lists 
 	const skillPath = join(root, "skills", "appelent-feature", "SKILL.md");
 	writeFileSync(
 		skillPath,
-		readFileSync(skillPath, "utf8").replace("`upgrade-deps`", "upgrade-deps"),
+		readFileSync(skillPath, "utf8").replace("`appelent-project`", "appelent-project"),
 	);
 
 	const errors = validateCatalog(root);
 	assert.equal(errors.length, 1);
-	assert.match(errors[0], /does not mention `upgrade-deps`/);
+	assert.match(errors[0], /does not mention `appelent-project`/);
 	rmSync(root, { recursive: true, force: true });
 });
 

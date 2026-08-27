@@ -17,10 +17,14 @@ runtime code under `packages/` (published to GitHub Packages as `@appelent/*`).
 | i18n | packaged | `@appelent/i18n` |
 | mcp | documented | — |
 
-`review-app`, `review-session`, and `upgrade-deps` also ship as plugin
-skills but aren't catalog features — no `FEATURE.md`, so no table row. Use
-the plugin-provided skills directly; copying them into an app is only a
-fallback for environments where the plugin is unavailable.
+A feature is a **ready-made module you add to an app**: it installs code or
+writes files, and records its version in that app's `appelent.json`. Skills
+that leave nothing behind — review passes, dependency upgrades, coding
+guidelines the agent merely reads — are not features. They live in the
+**toolbox** plugin ([`AppElent/appelent-skills`](https://github.com/AppElent/appelent-skills),
+`/toolbox:skill`), which is where `review-app`, `review-session` and
+`upgrade-deps` moved in 0.3.0. Skills specific to one app live in that app's
+own `.claude/skills/`, hand-written — never copied from either repo.
 
 ## Install (Claude Code)
 
@@ -58,23 +62,23 @@ local Directory source — that copies `node_modules` and fails on Windows.
 
 ## Install (Codex)
 
-Codex uses a local marketplace entry. For normal use, mirror the GitHub repo
-into `~/plugins/appelent` and install from the personal marketplace:
+Codex uses a local marketplace entry. Mirror the GitHub repo into
+`~/plugins/appelent` and install from the personal marketplace:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/setup-codex-plugin.ps1 -Mode Github
+```bash
+node scripts/setup-codex.mjs
 codex plugin add appelent@personal
 ```
 
 Start a new Codex task after installing so plugin skills are loaded.
 
-- **Local dev on this machine:** `powershell -ExecutionPolicy Bypass -File scripts/setup-codex-plugin.ps1 -Mode Dev`
-  points `~/plugins/appelent` at this checkout with a junction. Pair it with
+- **Local dev on this machine:** `node scripts/setup-codex.mjs --dev` links
+  `~/plugins/appelent` at this checkout. Pair it with
   `claude --plugin-dir "D:\Dev\appelent-packages"` so both agents read the
   same working tree.
-- **Update:** `powershell -ExecutionPolicy Bypass -File scripts/update-codex-plugin.ps1`.
-- **Fallback without plugin packaging:** `powershell -ExecutionPolicy Bypass -File scripts/setup-codex-skills.ps1`
-  junctions the skill folders directly into `~/.codex/skills`.
+- **Update:** re-run `node scripts/setup-codex.mjs`.
+
+The script is Node, not PowerShell, so it works on Windows, macOS and Linux.
 
 GitHub is the source of truth for both agents. **Any** change to `skills/` or
 `commands/` must bump `.claude-plugin/plugin.json` and
@@ -92,7 +96,9 @@ on it. Before this check existed the rule was documented but unenforced, and
 ## Usage
 
 - Feature catalog: `/appelent:feature list | show <feature> | apply <feature> [options] | capture <topic> | issue <text> | issues | fix <n> [n...]`.
-- Project: `/appelent:project list | status [--all] | issue <text> | issues | fix <n> [n...] | review-app | review-session | upgrade-deps | sync-skills <name>...`.
+- Project: `/appelent:project list | status [--all] | issue <text> | issues | fix <n> [n...]`.
+- Review passes and dependency upgrades: `/toolbox:skill` (the
+  [`appelent-skills`](https://github.com/AppElent/appelent-skills) repo).
 - Onboard a project (new or existing): `/appelent:feature apply baseline`, then
   add features à la carte.
 - Apps record their opted-in features and options in their own `appelent.json`.

@@ -689,18 +689,19 @@ never raw `tsc`/`vitest`/`biome` — no per-project detection.
     ```
 - [ ] **(f) Plugin workflow skills** — do not seed `review-app`,
   `review-session`, or `upgrade-deps` into `.claude/skills/` during baseline.
-  Use the plugin-provided `review-app`, `review-session`, and `upgrade-deps`
-  skills directly; the plugin copies are the source of truth and avoid
-  per-project drift. Keep `/appelent:project sync-skills <name>` as an explicit
-  fallback only for an environment where the Appelent plugin is unavailable but
-  committed plain-markdown skills are still needed.
+  They live in the **toolbox** plugin (`AppElent/appelent-skills`,
+  `/toolbox:skill`), which is the source of truth.
+  Use the plugin-provided `review-app`,
+  `review-session`, and `upgrade-deps`
+  skills directly. Never copy them into an app: copies drift, and a stale
+  project copy shadows the live plugin one.
 
   Also handle legacy app repos: if `.claude/skills/review-app`,
-  `.claude/skills/review-session`, or `.claude/skills/upgrade-deps` already
-  exists and matches the plugin copy, remove it. If one differs, flag the diff
+  `.claude/skills/review-session`, or `.claude/skills/upgrade-deps` still
+  exists, remove it. If one differs from the toolbox copy, flag the diff
   before deleting; project-specific behavior belongs in the app's docs or the
   `verify` skill, while general process fixes belong back in
-  `appelent-packages/skills/<name>`. Do not create or relocate review-note
+  `appelent-skills/skills/<name>`. Do not create or relocate review-note
   markdown folders during baseline; current review workflow skills file GitHub
   issues instead.
 
@@ -771,7 +772,7 @@ For the current repo:
    mirrored catalog-feature skill still exists in the app, delete it. Also
    remove legacy copied workflow skills under `.claude/skills/review-app`,
    `.claude/skills/review-session`, and `.claude/skills/upgrade-deps` when
-   they match the plugin copy; the plugin is now the source of truth. Leave
+   they exist; the toolbox plugin is now the source of truth. Leave
    `.claude/skills/verify` in place because it is project-specific.
 
 ### 12. Wrap up
@@ -780,7 +781,7 @@ For the current repo:
 - **Commit as you go, one commit per step** — bootstrap touches a lot of unrelated files across steps 1–11 and 14–15 (package manager, supply-chain hardening, scripts, Convex env, wrangler config, editor/Biome hygiene, `@appelent` wiring, preview workflow, GitHub issue reporter, `.claude/launch.json`, Claude Code workflow layer, mobile-zoom CSS fix, PWA setup). After finishing and verifying each step that changed files, create a focused commit for just that step's changes before moving on, rather than batching everything into one commit at the end. Use a short conventional message describing that step's concern (e.g. `chore: migrate to pnpm`, `chore: add supply-chain hardening settings`, `chore: add wrangler dev environment`, `fix: prevent iOS input-focus zoom`, `feat: add PWA support`). Skip the commit if a step made no changes. Never batch multiple unrelated steps into one commit.
 - Print a short summary: package manager status (migrated or already pnpm), supply-chain hardening status, scripts added, Convex vars set (keys only), deploy target + dev env configured, hygiene files added, `@appelent` package/registry status, preview workflow + secrets status, GitHub issue reporter route/modal/env status, `.claude/launch.json` status, Claude Code workflow-layer status (hook / settings / CI / commands / plugin workflow skills / verify skill / `AGENTS.md`), mobile-zoom CSS fix status, PWA status (manifest/icons/service worker), and the list of commits created.
 - Appelent feature record status: `appelent.json` written/updated with `baseline` (and any other applied features), managed `CLAUDE.md`/`AGENTS.md` blocks stamped, and any retired `.claude/appelent` mirror removed.
-- **Once everything above is applied and verified, refresh the project's `CLAUDE.md`** (use the `init` skill) so it reflects the new baseline — new scripts, env vars, deploy targets, `@appelent` packages, preview workflow. Do this even if `CLAUDE.md` already exists; bootstrap changes routinely go undocumented otherwise. Include a short note that `review-app`, `review-session`, and `upgrade-deps` come from the Appelent plugin and should not be copied into `.claude/skills/` by default. `.claude/skills/verify/SKILL.md` is project-specific by design (route→module map) and has no source-of-truth counterpart at all.
+- **Once everything above is applied and verified, refresh the project's `CLAUDE.md`** (use the `init` skill) so it reflects the new baseline — new scripts, env vars, deploy targets, `@appelent` packages, preview workflow. Do this even if `CLAUDE.md` already exists; bootstrap changes routinely go undocumented otherwise. Include a short note that `review-app`, `review-session`, and `upgrade-deps` come from the toolbox plugin (`AppElent/appelent-skills`) and must never be copied into `.claude/skills/`. `.claude/skills/verify/SKILL.md` is project-specific by design (route→module map) and has no source-of-truth counterpart at all.
 - **Check `README.md` against the same baseline** if one exists. It drifts independently of `CLAUDE.md` and routinely lags behind — the recurring offenders are `npm`/`npx` instead of `pnpm` in setup/dev commands, `cp .env.example .env` instead of `.env.local`, no mention of the private `@appelent` registry auth step (breaks a fresh clone's install with no explanation), and Cloudflare Workers/Wrangler deployment not mentioned at all. Update the parts that are stale; don't fabricate new sections it never had.
 - Commit the `CLAUDE.md`/`README.md` refresh as its own final commit, separate from the step commits above.
 

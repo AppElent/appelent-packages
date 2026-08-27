@@ -8,7 +8,9 @@
 		"typecheck": "pnpm -r typecheck",
 		"lint": "biome check .",
 		"validate:catalog": "node scripts/validate-catalog.mjs && node scripts/validate-plugin-manifests.mjs && node --test tests/catalog.test.mjs tests/plugin-manifests.test.mjs",
-		"publish:cli": "pnpm --filter @appelent/cli build && pnpm --filter @appelent/cli publish --no-git-checks"
+		"publish:cli": "pnpm --filter @appelent/cli build && pnpm --filter @appelent/cli publish --no-git-checks",
+		"setup:codex": "node scripts/setup-codex.mjs",
+		"setup:codex:dev": "node scripts/setup-codex.mjs --dev"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.0"

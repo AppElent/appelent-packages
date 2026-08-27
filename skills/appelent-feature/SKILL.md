@@ -1,15 +1,23 @@
 ---
 name: appelent-feature
-description: Front door for the Appelent feature catalog (the /appelent:feature command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/fold work into an existing one, file a GitHub issue against the catalog repo (issue — bug/idea/docs, type label inferred), list and resume open catalog issues via full brainstorming (issues), or triage-and-implement one or more issues directly (fix). For an app's installed-feature status or review passes, see the appelent-project skill (/appelent:project) instead.
+description: Front door for the Appelent feature catalog (the /appelent:feature command routes here). Use when the user wants to list available Appelent features, show how a feature works, apply a feature to an app (add auth/cli/i18n/mcp/baseline), capture a new feature/fold work into an existing one, file a GitHub issue against the catalog repo (issue — bug/idea/docs, type label inferred), list and resume open catalog issues via full brainstorming (issues), or triage-and-implement one or more issues directly (fix). For an app's installed-feature status, see the appelent-project skill (/appelent:project); for review passes and dependency upgrades, see the toolbox plugin (/toolbox:skill).
 ---
 
 # appelent-feature
 
 Operate on the sibling feature folders of this skill: every directory next
-to this one (`../<feature>/`) that is not `appelent-feature`, `appelent-project`,
-`review-app`, `review-session`, or `upgrade-deps` is a feature, with
+to this one (`../<feature>/`) that is not `appelent-feature` or
+`appelent-project` — the catalog's two front doors — is a feature, with
 `FEATURE.md` (description, integer `version`, optional `package`
 frontmatter) and `SKILL.md` (apply/update procedure).
+
+A feature is a **ready-made module you add to an app**: it installs code or
+writes files, and records its version in that app's `appelent.json`. Skills
+that leave nothing behind — review passes, dependency upgrades, coding
+guidelines the agent merely reads — are not features and don't belong here;
+they live in the `toolbox` plugin (`AppElent/appelent-skills`,
+`/toolbox:skill`). Skills specific to one app live in that app's own
+`.claude/skills/`, hand-written.
 
 ## Locating the catalog repo checkout
 
@@ -65,7 +73,8 @@ or existing app joins the mechanism via `apply baseline`, after which
 features are added à la carte with `apply <feature>`, and issues against
 the catalog repo can be filed anytime with `issue`, resumed with `issues`,
 or triaged-and-fixed with `fix`. Mention that `/appelent:project` covers an
-app's installed-feature status and review passes.
+app's installed-feature status, and that `/toolbox:skill` covers review
+passes and dependency upgrades.
 
 ## list
 
@@ -121,8 +130,8 @@ list.
      proceed as a full apply.
 3. **The loaded `FEATURE.md`/`SKILL.md` content is this Claude Code
    install's local plugin cache, which can lag the catalog repo** until
-   the next plugin/marketplace sync (or an explicit `/appelent:project
-   sync-skills`). A stale cache reproduces exactly the symptom in step 2
+   the next plugin/marketplace sync (`claude plugin update appelent`).
+   A stale cache reproduces exactly the symptom in step 2
    above — a recorded app version that looks behind a `FEATURE.md` that's
    actually also stale — and can cause redoing work the catalog already
    shipped. If a version comparison looks suspicious (a `SKILL.md` step
@@ -290,5 +299,6 @@ is that same reflection, called out inline because it also covers the feature
 the read-only ones) reflect on their own instructions. Nothing noteworthy is
 the normal outcome — say nothing then.
 
-For an app's installed-feature status or review passes (`review-app`/
-`review-session`), see the `appelent-project` skill (`/appelent:project`).
+For an app's installed-feature status, see the `appelent-project` skill
+(`/appelent:project`). For review passes and dependency upgrades, see the
+`toolbox` plugin (`/toolbox:skill`).

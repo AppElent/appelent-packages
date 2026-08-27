@@ -1,6 +1,6 @@
 ---
 name: appelent-project
-description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), file a GitHub issue against this app's own repo (issue — bug/idea/docs, type label inferred), list and resume open issues via full brainstorming (issues), or triage-and-implement one or more issues directly (fix) — all three are also reachable via /appelent:feature, which files against the catalog repo instead — run a review pass (review-app/review-session), safely upgrade dependencies (upgrade-deps), or make fallback-only plain-markdown skill copies (sync-skills). For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature) instead.
+description: App/project-side companion to the Appelent feature catalog (the /appelent:project command routes here). Use when the user wants to list an app's installed features, check installed-feature status/freshness against the catalog (incl. an --all sweep across registered projects), file a GitHub issue against this app's own repo (issue — bug/idea/docs, type label inferred), list and resume open issues via full brainstorming (issues), or triage-and-implement one or more issues directly (fix) — all three are also reachable via /appelent:feature, which files against the catalog repo instead. For catalog-side operations (list available features, show, apply, capture), see the appelent-feature skill (/appelent:feature); for review passes and dependency upgrades, see the toolbox plugin (/toolbox:skill).
 ---
 
 # appelent-project
@@ -18,14 +18,13 @@ Subcommands (also reachable by natural language):
 For `help`, or when invoked with no/unrecognized arguments: explain the
 subcommands below in one line each, including `issue <text>` (file a GitHub
 issue against this app's own repo, type label inferred), `issues` (list &
-resume open issues), `fix <n>` (triage-and-implement issues directly),
-`upgrade-deps` (safely upgrade this app's dependencies) and `sync-skills
-<name>...` (fallback-only plain-markdown copies for environments without
-the plugin).
+resume open issues) and `fix <n>` (triage-and-implement issues directly).
 Mention that `/appelent:feature` covers catalog-side operations (list
 available features, show, apply, capture) and also exposes the same
 `issue`/`issues`/`fix` verbs as alternate entry points that file against the
-catalog repo instead of this app.
+catalog repo instead of this app, and that `/toolbox:skill` covers review
+passes (`review-app`, `review-session`) and dependency upgrades
+(`upgrade-deps`).
 
 ## list
 
@@ -192,56 +191,6 @@ an alternate entry point to the same steps below (differing only in
    acting on any of them, so the user sees every proposal up front and can
    route each one (`brainstorm/plan` vs `just go` vs skip) independently,
    rather than being surprised mid-batch.
-
-## review-app
-
-Invoke the `review-app` skill against the current app, using any argument
-text as its scope (e.g. `review-app mobile`, `review-app what we just
-built`) exactly as `review-app` itself interprets scope arguments. The skill
-files one GitHub issue in this app's own repo using the target-repo and label
-conventions above. No extra logic here — this subcommand exists purely as a
-discoverable entry point alongside the app's own natural-language triggers for
-that skill.
-
-## review-session
-
-Invoke the `review-session` skill against the current app. Same
-pass-through behavior as `review-app`: it files one GitHub issue in this app's
-own repo, with no extra logic beyond this discoverable entry point under
-`/appelent:project`.
-
-## upgrade-deps
-
-Invoke the `upgrade-deps` skill against the current app. Same
-pass-through behavior as `review-app`/`review-session`: no extra logic,
-just a discoverable entry point alongside natural-language triggers like
-"upgrade dependencies" or "update packages".
-
-## sync-skills <name> [name...]
-
-Fallback-only: copy one or more of the plugin's own skill folders verbatim
-into this app's `.claude/skills/<name>/` — `SKILL.md` and any accompanying
-files (e.g. `references/`), unmodified. Use this only when the Appelent
-plugin is unavailable in the target environment and committed
-plain-markdown skills are still needed. Normal app projects should invoke
-the plugin-provided skills directly.
-
-Resolves `<name>` the same way `appelent-feature`'s `show` does
-(`../<name>/` relative to this skill). Works for any sibling skill, catalog
-features included (auth/cli/i18n/mcp) as well as workflow skills
-(review-app/review-session/upgrade-deps) — this is a raw copy, not `apply
-<feature>`: no package install, wiring, or `appelent.json` recording.
-
-1. No arguments: list the plugin's skill folders except
-   `appelent-feature`/`appelent-project` (copying the front doors into an
-   app is never useful) and ask which to copy.
-2. For each named skill: if `.claude/skills/<name>/` doesn't exist yet in
-   the app, copy `../<name>/` there directly. If it exists and is
-   identical, report "already in sync" and skip. If it exists and
-   differs, show what would change and ask before overwriting — never
-   silently clobber a hand-edited project-local copy.
-3. Report one line per skill: copied, already in sync, or skipped
-   (declined overwrite).
 
 ## Self-improvement
 
